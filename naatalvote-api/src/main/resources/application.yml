@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: naatalvote-api
+  profiles:
+    default: inmemory
+  jackson:
+    time-zone: Africa/Dakar
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  api-docs:
+    path: /api/v1/docs
+  swagger-ui:
+    path: /api/v1/swagger
