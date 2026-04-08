@@ -15,5 +15,7 @@ spring:
     enabled: true
   data:
     redis:
+      # Render Redis often provides a full URL; Spring will prefer `url` when set.
+      url: ${SPRING_DATA_REDIS_URL:}
       host: ${SPRING_DATA_REDIS_HOST:localhost}
       port: ${SPRING_DATA_REDIS_PORT:6379}

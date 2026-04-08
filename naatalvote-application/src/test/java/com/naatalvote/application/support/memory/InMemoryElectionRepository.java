@@ -1,4 +1,4 @@
-package com.naatalvote.infrastructure.persistence.memory;
+package com.naatalvote.application.support.memory;
 
 import com.naatalvote.application.election.ports.ElectionRepositoryPort;
 import com.naatalvote.domain.election.Election;
@@ -37,4 +37,3 @@ public final class InMemoryElectionRepository implements ElectionRepositoryPort 
     return store.size();
   }
 }
-

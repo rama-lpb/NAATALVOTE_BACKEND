@@ -37,6 +37,18 @@ public final class CandidateJpaAdapter implements CandidateRepositoryPort {
   }
 
   @Override
+  public List<Candidate> findAllPaged(int offset, int limit) {
+    int page = offset / limit;
+    return repo.findAll(org.springframework.data.domain.PageRequest.of(page, limit))
+        .stream().map(CandidateJpaAdapter::toDomain).toList();
+  }
+
+  @Override
+  public long count() {
+    return repo.count();
+  }
+
+  @Override
   public void deleteById(UUID id) {
     repo.deleteById(id);
   }

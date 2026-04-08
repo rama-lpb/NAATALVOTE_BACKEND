@@ -31,6 +31,18 @@ public final class ElectionJpaAdapter implements ElectionRepositoryPort {
     return repo.findAll().stream().map(ElectionJpaAdapter::toDomain).toList();
   }
 
+  @Override
+  public List<Election> findAllPaged(int offset, int limit) {
+    int page = offset / limit;
+    return repo.findAll(org.springframework.data.domain.PageRequest.of(page, limit))
+        .stream().map(ElectionJpaAdapter::toDomain).toList();
+  }
+
+  @Override
+  public long count() {
+    return repo.count();
+  }
+
   private static Election toDomain(ElectionEntity e) {
     return new Election(e.getId(), e.getTitre(), e.getDescription(), e.getType(), e.getDateDebut(), e.getDateFin(), e.getStatut(), e.getAdminId());
   }

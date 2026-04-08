@@ -1,4 +1,4 @@
-package com.naatalvote.infrastructure.persistence.memory;
+package com.naatalvote.application.support.memory;
 
 import com.naatalvote.application.election.ports.CandidateRepositoryPort;
 import com.naatalvote.domain.election.Candidate;

@@ -10,5 +10,7 @@ public interface CandidateRepositoryPort {
   Optional<Candidate> findById(UUID id);
   List<Candidate> findAll();
   List<Candidate> findByElectionId(UUID electionId);
+  List<Candidate> findAllPaged(int offset, int limit);
+  long count();
   void deleteById(UUID id);
 }

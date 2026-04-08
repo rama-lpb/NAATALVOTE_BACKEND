@@ -13,6 +13,8 @@ public final class User {
   private final String email;
   private final List<String> telephones;
   private final List<UserRole> roles;
+  private final String dateNaissance;
+  private final String adresse;
 
   public User(
       UUID id,
@@ -22,6 +24,20 @@ public final class User {
       String email,
       List<String> telephones,
       List<UserRole> roles
+  ) {
+    this(id, cni, nom, prenom, email, telephones, roles, "", "");
+  }
+
+  public User(
+      UUID id,
+      String cni,
+      String nom,
+      String prenom,
+      String email,
+      List<String> telephones,
+      List<UserRole> roles,
+      String dateNaissance,
+      String adresse
   ) {
     this.id = Objects.requireNonNull(id, "id");
     this.cni = requireNonBlank(cni, "cni");
@@ -33,6 +49,8 @@ public final class User {
     if (this.roles.isEmpty()) {
       throw new DomainException("roles ne peut pas être vide");
     }
+    this.dateNaissance = dateNaissance == null ? "" : dateNaissance;
+    this.adresse = adresse == null ? "" : adresse;
   }
 
   public UUID id() {
@@ -61,6 +79,14 @@ public final class User {
 
   public List<UserRole> roles() {
     return roles;
+  }
+
+  public String dateNaissance() {
+    return dateNaissance;
+  }
+
+  public String adresse() {
+    return adresse;
   }
 
   private static String requireNonBlank(String value, String field) {

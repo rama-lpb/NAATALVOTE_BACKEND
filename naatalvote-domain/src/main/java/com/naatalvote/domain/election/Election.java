@@ -2,6 +2,7 @@ package com.naatalvote.domain.election;
 
 import com.naatalvote.domain.common.DomainException;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -14,6 +15,10 @@ public final class Election {
   private final Instant dateFin;
   private final ElectionStatus statut;
   private final UUID adminId;
+  private final List<UUID> candidatIds;
+  private final String region;
+  private final int totalElecteurs;
+  private final int votesCount;
 
   public Election(
       UUID id,
@@ -24,6 +29,23 @@ public final class Election {
       Instant dateFin,
       ElectionStatus statut,
       UUID adminId
+  ) {
+    this(id, titre, description, type, dateDebut, dateFin, statut, adminId, List.of(), "", 0, 0);
+  }
+
+  public Election(
+      UUID id,
+      String titre,
+      String description,
+      ElectionType type,
+      Instant dateDebut,
+      Instant dateFin,
+      ElectionStatus statut,
+      UUID adminId,
+      List<UUID> candidatIds,
+      String region,
+      int totalElecteurs,
+      int votesCount
   ) {
     this.id = Objects.requireNonNull(id, "id");
     this.titre = requireNonBlank(titre, "titre");
@@ -36,6 +58,10 @@ public final class Election {
     }
     this.statut = Objects.requireNonNull(statut, "statut");
     this.adminId = Objects.requireNonNull(adminId, "adminId");
+    this.candidatIds = List.copyOf(candidatIds == null ? List.of() : candidatIds);
+    this.region = region == null ? "" : region;
+    this.totalElecteurs = totalElecteurs;
+    this.votesCount = votesCount;
   }
 
   public UUID id() {
@@ -68,6 +94,22 @@ public final class Election {
 
   public UUID adminId() {
     return adminId;
+  }
+
+  public List<UUID> candidatIds() {
+    return candidatIds;
+  }
+
+  public String region() {
+    return region;
+  }
+
+  public int totalElecteurs() {
+    return totalElecteurs;
+  }
+
+  public int votesCount() {
+    return votesCount;
   }
 
   private static String requireNonBlank(String value, String field) {

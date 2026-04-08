@@ -34,13 +34,14 @@ public class AdminController {
 
   @GetMapping("/api/v1/admin/elections/{id}/stats")
   public Map<String, Object> stats(@PathVariable("id") UUID electionId) {
-    // placeholder (à enrichir avec agrégations réelles)
-    Election e = admin.listAdminElections(null).stream().filter(x -> x.id().equals(electionId)).findFirst().orElseThrow();
+    AdminService.ElectionStats stats = admin.getElectionStats(electionId);
     return Map.of(
-        "election_id", e.id().toString(),
-        "titre", e.titre(),
-        "participation_rate", 0.0,
-        "trends", List.of()
+        "election_id", stats.electionId().toString(),
+        "titre", stats.titre(),
+        "total_votes", stats.totalVotes(),
+        "participation_rate", stats.participationRate(),
+        "candidate_votes", stats.candidateVotes().stream().map(c -> Map.of("candidat_id", c.candidatId().toString(), "votes", c.votes())).toList(),
+        "statut", stats.statut()
     );
   }
 

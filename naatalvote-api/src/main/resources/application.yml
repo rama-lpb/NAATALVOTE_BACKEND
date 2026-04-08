@@ -1,5 +1,6 @@
 server:
-  port: 8080
+  # Render exposes the port via $PORT. Default to 8080 for local/dev & Docker.
+  port: ${PORT:8080}
 
 spring:
   application:
@@ -20,3 +21,8 @@ springdoc:
     path: /api/v1/docs
   swagger-ui:
     path: /api/v1/swagger
+
+naatalvote:
+  cors:
+    # Comma-separated list. Override in Render via env var NAATALVOTE_CORS_ALLOWED_ORIGINS.
+    allowed-origins: ${NAATALVOTE_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}

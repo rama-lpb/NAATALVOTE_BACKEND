@@ -58,8 +58,8 @@ public class ApplicationServicesConfig {
   }
 
   @Bean
-  public AdminService adminService(ElectionRepositoryPort elections) {
-    return new AdminService(elections);
+  public AdminService adminService(ElectionRepositoryPort elections, VoteRepositoryPort votes) {
+    return new AdminService(elections, votes);
   }
 
   @Bean

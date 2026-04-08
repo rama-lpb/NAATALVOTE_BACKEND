@@ -39,7 +39,13 @@ public final class VoteService {
   }
 
   public Vote verifyToken(UUID token) {
-    return votes.findByToken(token).orElseThrow();
+    Vote v = votes.findByToken(token).orElseThrow(() -> new DomainException("Token non trouvé"));
+    return v;
+  }
+
+  public VerifyResult verify(UUID token) {
+    Vote v = verifyToken(token);
+    return new VerifyResult(v.electionId(), v.candidatId(), v.horodatage());
   }
 
   public Results results(UUID electionId) {
@@ -59,5 +65,6 @@ public final class VoteService {
   public record CastVoteResult(boolean success, UUID tokenAnonyme, Instant horodatage) {}
   public record ResultLine(UUID candidatId, int votes, double percent) {}
   public record Results(UUID electionId, int totalVotes, List<ResultLine> results) {}
+  public record VerifyResult(UUID electionId, UUID candidatId, Instant horodatage) {}
 }
 

@@ -1,9 +1,14 @@
 package com.naatalvote.api.elections;
 
+import com.naatalvote.api.common.DtoAssembler;
 import com.naatalvote.application.election.ElectionService;
-import com.naatalvote.domain.election.Candidate;
-import com.naatalvote.domain.election.Election;
+import com.naatalvote.domain.common.DomainException;
 import com.naatalvote.domain.election.ElectionType;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,44 +32,69 @@ public class ElectionsController {
   }
 
   @GetMapping("/api/v1/elections")
-  public List<ElectionDto> list() {
-    return elections.listElections().stream().map(ElectionDto::from).toList();
+  public List<DtoAssembler.ElectionDto> list() {
+    return elections.listElections().stream()
+        .map(DtoAssembler::toElectionDto)
+        .toList();
+  }
+
+  @GetMapping("/api/v1/elections/paged")
+  public PagedElectionsResponse listPaged(
+      @RequestParam(defaultValue = "0") @Min(0) int page,
+      @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+    var result = elections.listElectionsPaged(page, size);
+    List<DtoAssembler.ElectionDto> content = result.content().stream()
+        .map(DtoAssembler::toElectionDto)
+        .toList();
+    return new PagedElectionsResponse(content, result.page(), result.pageSize(), result.total(), result.totalPages());
   }
 
   @GetMapping("/api/v1/elections/{id}")
-  public ElectionDto get(@PathVariable("id") UUID id) {
-    return ElectionDto.from(elections.getElection(id));
+  public DtoAssembler.ElectionDto get(@PathVariable("id") UUID id) {
+    return DtoAssembler.toElectionDto(elections.getElection(id));
   }
 
   @GetMapping("/api/v1/elections/{id}/candidats")
-  public List<CandidateDto> listCandidates(@PathVariable("id") UUID id) {
-    return elections.listCandidates(id).stream().map(CandidateDto::from).toList();
+  public List<DtoAssembler.CandidateDto> listCandidates(@PathVariable("id") UUID id) {
+    return elections.listCandidates(id).stream()
+        .map(DtoAssembler::toCandidateDto)
+        .toList();
   }
 
   @PostMapping("/api/v1/elections")
   @ResponseStatus(HttpStatus.CREATED)
-  public Map<String, Object> create(@RequestBody CreateElectionRequest req) {
-    UUID id = elections.createElection(new ElectionService.CreateElectionCommand(
-        UUID.fromString(req.admin_id()),
-        req.titre(),
-        req.description(),
-        ElectionType.valueOf(req.type()),
-        Instant.parse(req.date_debut()),
-        Instant.parse(req.date_fin())
-    ));
-    return Map.of("id", id.toString());
+  public Map<String, Object> create(@Valid @RequestBody CreateElectionRequest req) {
+    try {
+      ElectionType type = ElectionType.valueOf(req.type());
+      UUID id = elections.createElection(new ElectionService.CreateElectionCommand(
+          UUID.fromString(req.admin_id()),
+          req.titre(),
+          req.description(),
+          type,
+          Instant.parse(req.date_debut()),
+          Instant.parse(req.date_fin())
+      ));
+      return Map.of("id", id.toString());
+    } catch (IllegalArgumentException e) {
+      throw new DomainException("Type d'élection invalide ou format de date invalide");
+    }
   }
 
   @PutMapping("/api/v1/elections/{id}")
-  public Map<String, Object> update(@PathVariable("id") UUID id, @RequestBody UpdateElectionRequest req) {
-    elections.updateElection(id, new ElectionService.UpdateElectionCommand(
-        req.titre(),
-        req.description(),
-        req.type() == null ? null : ElectionType.valueOf(req.type()),
-        req.date_debut() == null ? null : Instant.parse(req.date_debut()),
-        req.date_fin() == null ? null : Instant.parse(req.date_fin())
-    ));
-    return Map.of("success", true);
+  public Map<String, Object> update(@PathVariable("id") UUID id, @Valid @RequestBody UpdateElectionRequest req) {
+    try {
+      ElectionType type = req.type() == null ? null : ElectionType.valueOf(req.type());
+      elections.updateElection(id, new ElectionService.UpdateElectionCommand(
+          req.titre(),
+          req.description(),
+          type,
+          req.date_debut() == null ? null : Instant.parse(req.date_debut()),
+          req.date_fin() == null ? null : Instant.parse(req.date_fin())
+      ));
+      return Map.of("success", true);
+    } catch (IllegalArgumentException e) {
+      throw new DomainException("Type d'élection invalide ou format de date invalide");
+    }
   }
 
   @PostMapping("/api/v1/elections/{id}/publish")
@@ -73,12 +104,12 @@ public class ElectionsController {
   }
 
   public record CreateElectionRequest(
-      String titre,
+      @NotBlank(message = "Le titre est requis") String titre,
       String description,
-      String type,
-      String date_debut,
-      String date_fin,
-      String admin_id
+      @NotNull(message = "Le type est requis") String type,
+      @NotBlank(message = "La date de début est requise") String date_debut,
+      @NotBlank(message = "La date de fin est requise") String date_fin,
+      @NotBlank(message = "L'ID admin est requis") String admin_id
   ) {}
 
   public record UpdateElectionRequest(
@@ -89,49 +120,11 @@ public class ElectionsController {
       String date_fin
   ) {}
 
-  public record ElectionDto(
-      String id,
-      String titre,
-      String type,
-      String statut,
-      String date_debut,
-      String date_fin,
-      String admin_id
-  ) {
-    static ElectionDto from(Election e) {
-      return new ElectionDto(
-          e.id().toString(),
-          e.titre(),
-          e.type().name(),
-          e.statut().name(),
-          e.dateDebut().toString(),
-          e.dateFin().toString(),
-          e.adminId().toString()
-      );
-    }
-  }
-
-  public record CandidateDto(
-      String id,
-      String election_id,
-      String nom,
-      String prenom,
-      String parti_politique,
-      String biographie,
-      String photo_url,
-      String programme_url
-  ) {
-    static CandidateDto from(Candidate c) {
-      return new CandidateDto(
-          c.id().toString(),
-          c.electionId().toString(),
-          c.nom(),
-          c.prenom(),
-          c.partiPolitique(),
-          c.biographie(),
-          c.photoUrl(),
-          c.programmeUrl()
-      );
-    }
-  }
+  public record PagedElectionsResponse(
+      List<DtoAssembler.ElectionDto> content,
+      int page,
+      int pageSize,
+      long total,
+      int totalPages
+  ) {}
 }

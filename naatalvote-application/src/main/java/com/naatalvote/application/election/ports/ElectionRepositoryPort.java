@@ -9,5 +9,7 @@ public interface ElectionRepositoryPort {
   Election save(Election election);
   Optional<Election> findById(UUID id);
   List<Election> findAll();
+  List<Election> findAllPaged(int offset, int limit);
+  long count();
 }
 

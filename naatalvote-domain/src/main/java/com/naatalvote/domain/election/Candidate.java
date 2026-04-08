@@ -13,6 +13,8 @@ public final class Candidate {
   private final String biographie;
   private final String photoUrl;
   private final String programmeUrl;
+  private final int votesCount;
+  private final String color;
 
   public Candidate(
       UUID id,
@@ -24,6 +26,21 @@ public final class Candidate {
       String photoUrl,
       String programmeUrl
   ) {
+    this(id, electionId, nom, prenom, partiPolitique, biographie, photoUrl, programmeUrl, 0, "");
+  }
+
+  public Candidate(
+      UUID id,
+      UUID electionId,
+      String nom,
+      String prenom,
+      String partiPolitique,
+      String biographie,
+      String photoUrl,
+      String programmeUrl,
+      int votesCount,
+      String color
+  ) {
     this.id = Objects.requireNonNull(id, "id");
     this.electionId = Objects.requireNonNull(electionId, "electionId");
     this.nom = requireNonBlank(nom, "nom");
@@ -32,6 +49,8 @@ public final class Candidate {
     this.biographie = biographie == null ? "" : biographie;
     this.photoUrl = photoUrl == null ? "" : photoUrl;
     this.programmeUrl = programmeUrl == null ? "" : programmeUrl;
+    this.votesCount = votesCount;
+    this.color = color == null ? "" : color;
   }
 
   public UUID id() {
@@ -64,6 +83,14 @@ public final class Candidate {
 
   public String programmeUrl() {
     return programmeUrl;
+  }
+
+  public int votesCount() {
+    return votesCount;
+  }
+
+  public String color() {
+    return color;
   }
 
   private static String requireNonBlank(String value, String field) {

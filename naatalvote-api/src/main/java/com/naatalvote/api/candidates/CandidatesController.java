@@ -1,7 +1,11 @@
 package com.naatalvote.api.candidates;
 
+import com.naatalvote.api.common.DtoAssembler;
 import com.naatalvote.application.election.ElectionService;
-import com.naatalvote.domain.election.Candidate;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -12,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,18 +29,31 @@ public class CandidatesController {
   }
 
   @GetMapping("/api/v1/candidats")
-  public List<CandidateDto> list() {
-    return elections.listAllCandidates().stream().map(CandidateDto::from).toList();
+  public List<DtoAssembler.CandidateDto> list() {
+    return elections.listAllCandidates().stream()
+        .map(DtoAssembler::toCandidateDto)
+        .toList();
+  }
+
+  @GetMapping("/api/v1/candidats/paged")
+  public PagedCandidatesResponse listPaged(
+      @RequestParam(defaultValue = "0") @Min(0) int page,
+      @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+    var result = elections.listCandidatesPaged(page, size);
+    List<DtoAssembler.CandidateDto> content = result.content().stream()
+        .map(DtoAssembler::toCandidateDto)
+        .toList();
+    return new PagedCandidatesResponse(content, result.page(), result.pageSize(), result.total(), result.totalPages());
   }
 
   @GetMapping("/api/v1/candidats/{id}")
-  public CandidateDto get(@PathVariable("id") UUID id) {
-    return CandidateDto.from(elections.getCandidate(id));
+  public DtoAssembler.CandidateDto get(@PathVariable("id") UUID id) {
+    return DtoAssembler.toCandidateDto(elections.getCandidate(id));
   }
 
   @PostMapping("/api/v1/candidats")
   @ResponseStatus(HttpStatus.CREATED)
-  public Map<String, Object> create(@RequestBody CreateCandidateRequest req) {
+  public Map<String, Object> create(@Valid @RequestBody CreateCandidateRequest req) {
     UUID id = elections.createCandidate(new ElectionService.CreateCandidateCommand(
         UUID.fromString(req.election_id()),
         req.nom(),
@@ -68,9 +86,9 @@ public class CandidatesController {
   }
 
   public record CreateCandidateRequest(
-      String election_id,
-      String nom,
-      String prenom,
+      @NotBlank(message = "election_id requis") String election_id,
+      @NotBlank(message = "Le nom est requis") String nom,
+      @NotBlank(message = "Le prénom est requis") String prenom,
       String parti_politique,
       String biographie,
       String photo_url,
@@ -87,27 +105,11 @@ public class CandidatesController {
       String programme_url
   ) {}
 
-  public record CandidateDto(
-      String id,
-      String election_id,
-      String nom,
-      String prenom,
-      String parti_politique,
-      String biographie,
-      String photo_url,
-      String programme_url
-  ) {
-    static CandidateDto from(Candidate c) {
-      return new CandidateDto(
-          c.id().toString(),
-          c.electionId().toString(),
-          c.nom(),
-          c.prenom(),
-          c.partiPolitique(),
-          c.biographie(),
-          c.photoUrl(),
-          c.programmeUrl()
-      );
-    }
-  }
+  public record PagedCandidatesResponse(
+      List<DtoAssembler.CandidateDto> content,
+      int page,
+      int pageSize,
+      long total,
+      int totalPages
+  ) {}
 }
