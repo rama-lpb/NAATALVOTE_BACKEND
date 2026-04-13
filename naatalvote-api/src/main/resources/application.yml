@@ -26,3 +26,7 @@ naatalvote:
   cors:
     # Comma-separated list. Override in Render via env var NAATALVOTE_CORS_ALLOWED_ORIGINS.
     allowed-origins: ${NAATALVOTE_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+
+appdaff:
+  # Base URL of the external registry (simulation) used to fetch citizen data by CNI.
+  base-url: ${APPDAFF_BASE_URL:http://localhost:9090}

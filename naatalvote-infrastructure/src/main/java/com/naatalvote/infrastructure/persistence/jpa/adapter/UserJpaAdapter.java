@@ -37,7 +37,17 @@ public final class UserJpaAdapter implements UserRepositoryPort {
   }
 
   private static User toDomain(UserEntity e) {
-    return new User(e.getId(), e.getCni(), e.getNom(), e.getPrenom(), e.getEmail(), e.getTelephones(), e.getRoles());
+    return new User(
+        e.getId(),
+        e.getCni(),
+        e.getNom(),
+        e.getPrenom(),
+        e.getEmail(),
+        e.getTelephones(),
+        e.getRoles(),
+        e.getDateNaissance(),
+        e.getAdresse()
+    );
   }
 
   private static UserEntity toEntity(User u) {
@@ -47,9 +57,10 @@ public final class UserJpaAdapter implements UserRepositoryPort {
     e.setNom(u.nom());
     e.setPrenom(u.prenom());
     e.setEmail(u.email());
+    e.setDateNaissance(u.dateNaissance());
+    e.setAdresse(u.adresse());
     e.setTelephones(u.telephones());
     e.setRoles(u.roles());
     return e;
   }
 }
-

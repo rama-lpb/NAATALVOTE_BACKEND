@@ -49,7 +49,17 @@ public class CitizenController {
     }
   }
 
-  public record UserDto(String id, String cni, String nom, String prenom, String email, List<String> roles) {
+  public record UserDto(
+      String id,
+      String cni,
+      String nom,
+      String prenom,
+      String email,
+      List<String> telephones,
+      String date_naissance,
+      String adresse,
+      List<String> roles
+  ) {
     static UserDto from(User user) {
       return new UserDto(
           user.id().toString(),
@@ -57,6 +67,9 @@ public class CitizenController {
           user.nom(),
           user.prenom(),
           user.email(),
+          user.telephones(),
+          user.dateNaissance(),
+          user.adresse(),
           user.roles().stream().map(Enum::name).toList()
       );
     }

@@ -9,7 +9,7 @@ Ce dossier contient le squelette du backend Spring Boot (Java 17) structuré en 
 
 ## Démarrage (dev)
 
-Depuis `Bacend/` :
+Depuis la racine du repo backend (`BACKEND_NAATALVOTE/`) :
 
 ```bash
 mvn -q -pl naatalvote-api -am package -DskipTests
@@ -22,11 +22,15 @@ Swagger (profile `inmemory` par défaut) :
 
 ## Démarrage Docker (PostgreSQL + Redis)
 
-À la racine du repo :
+À la racine du repo backend :
 
 ```bash
 docker compose up --build
 ```
+
+Notes :
+- PostgreSQL est exposé sur `localhost:5433` (pour éviter les conflits si `5432` est déjà utilisé sur ta machine).
+- Un service **AppDAFF simulation** est lancé sur `localhost:9090` (fixtures CNI -> user).
 
 Swagger :
 - `http://localhost:8080/api/v1/swagger`
@@ -37,6 +41,8 @@ Variables env attendues (profile `postgres`) :
 - `SPRING_DATASOURCE_PASSWORD`
  - `SPRING_DATA_REDIS_HOST`
  - `SPRING_DATA_REDIS_PORT`
+ - `NAATALVOTE_CORS_ALLOWED_ORIGINS` (ex: URL du frontend Render)
+ - `APPDAFF_BASE_URL` (ex: `http://localhost:9090` ou `http://appdaff:9090` en Docker)
 
 ## Notes d’architecture
 

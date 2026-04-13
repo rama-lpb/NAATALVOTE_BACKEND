@@ -5,6 +5,7 @@ import com.naatalvote.application.audit.ports.ActionLogRepositoryPort;
 import com.naatalvote.application.auth.AuthService;
 import com.naatalvote.application.auth.OtpGenerator;
 import com.naatalvote.application.auth.SecureRandomOtpGenerator;
+import com.naatalvote.application.auth.ports.CitizenRegistryPort;
 import com.naatalvote.application.auth.ports.OtpSenderPort;
 import com.naatalvote.application.auth.ports.OtpStorePort;
 import com.naatalvote.application.auth.ports.TokenIssuerPort;
@@ -33,13 +34,14 @@ public class ApplicationServicesConfig {
   @Bean
   public AuthService authService(
       UserRepositoryPort users,
+      CitizenRegistryPort citizenRegistry,
       OtpStorePort otpStore,
       OtpSenderPort otpSender,
       TokenIssuerPort tokenIssuer,
       ActionLogRepositoryPort actionLogs,
       OtpGenerator otpGenerator
   ) {
-    return new AuthService(users, otpStore, otpSender, tokenIssuer, actionLogs, otpGenerator);
+    return new AuthService(users, citizenRegistry, otpStore, otpSender, tokenIssuer, actionLogs, otpGenerator);
   }
 
   @Bean
@@ -67,4 +69,3 @@ public class ApplicationServicesConfig {
     return new SuperAdminService(users, logs, suspensions);
   }
 }
-

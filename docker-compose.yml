@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: naatalvote
+      POSTGRES_USER: naatalvote
+      POSTGRES_PASSWORD: naatalvote
+    ports:
+      # 5432 is often already used on the host; expose on 5433 by default (override with POSTGRES_HOST_PORT).
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - naatalvote_pg:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  appdaff:
+    build:
+      context: ./appdaff-sim
+      dockerfile: Dockerfile
+    ports:
+      - "${APPDAFF_HOST_PORT:-9090}:9090"
+    # For local dev, mount fixtures so changes take effect without rebuilding the image.
+    volumes:
+      - ./appdaff-sim/fixtures:/app/fixtures:ro
+      - ./appdaff-sim/server.py:/app/server.py:ro
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/naatalvote
+      SPRING_DATASOURCE_USERNAME: naatalvote
+      SPRING_DATASOURCE_PASSWORD: naatalvote
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      APPDAFF_BASE_URL: http://appdaff:9090
+    ports:
+      # Override with BACKEND_HOST_PORT if 8080 is already used on your machine.
+      - "${BACKEND_HOST_PORT:-8080}:8080"
+    depends_on:
+      - postgres
+      - redis
+      - appdaff
+
+volumes:
+  naatalvote_pg:

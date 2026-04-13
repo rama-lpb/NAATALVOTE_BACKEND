@@ -33,6 +33,12 @@ public class UserEntity {
   @Column(name = "email", nullable = false)
   private String email;
 
+  @Column(name = "date_naissance", nullable = false)
+  private String dateNaissance = "";
+
+  @Column(name = "adresse", nullable = false)
+  private String adresse = "";
+
   @ElementCollection
   @CollectionTable(name = "utilisateur_telephone", joinColumns = @JoinColumn(name = "utilisateur_id"))
   @Column(name = "telephone", nullable = false)
@@ -84,6 +90,22 @@ public class UserEntity {
     this.email = email;
   }
 
+  public String getDateNaissance() {
+    return dateNaissance;
+  }
+
+  public void setDateNaissance(String dateNaissance) {
+    this.dateNaissance = dateNaissance;
+  }
+
+  public String getAdresse() {
+    return adresse;
+  }
+
+  public void setAdresse(String adresse) {
+    this.adresse = adresse;
+  }
+
   public List<String> getTelephones() {
     return telephones;
   }
@@ -100,4 +122,3 @@ public class UserEntity {
     this.roles = roles;
   }
 }
-

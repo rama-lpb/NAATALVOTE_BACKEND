@@ -2,9 +2,11 @@ package com.naatalvote.api.auth;
 
 import com.naatalvote.application.auth.AuthService;
 import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,6 +38,11 @@ public class AuthController {
   @PostMapping("/api/v1/auth/logout")
   public Map<String, Object> logout() {
     return Map.of("success", true);
+  }
+
+  @GetMapping("/api/v1/auth/lookup")
+  public AuthService.LookupPhonesResponse lookup(@RequestParam("cni") String cni) {
+    return auth.lookupPhones(cni);
   }
 
   public record LoginRequest(String cni, String telephone) {}

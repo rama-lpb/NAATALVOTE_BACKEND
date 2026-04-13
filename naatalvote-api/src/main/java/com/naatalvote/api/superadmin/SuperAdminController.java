@@ -30,6 +30,9 @@ public class SuperAdminController {
         "nom", u.nom(),
         "prenom", u.prenom(),
         "email", u.email(),
+        "telephones", u.telephones(),
+        "date_naissance", u.dateNaissance(),
+        "adresse", u.adresse(),
         "roles", u.roles().stream().map(Enum::name).toList()
     )).toList();
   }

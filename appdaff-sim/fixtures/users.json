@@ -1,0 +1,208 @@
+{
+  "users": [
+    {
+      "cni": "20119990214000017",
+      "aliases": ["CNI-0001"],
+      "nom": "DIOP",
+      "prenom": "Awa",
+      "email": "awa.diop@example.com",
+      "telephones": ["+221770000001"],
+      "date_naissance": "1999-02-14",
+      "adresse": "Dakar, Sénégal",
+      "roles": ["CITOYEN"]
+    },
+    {
+      "cni": "10219951003000028",
+      "aliases": ["CNI-0002"],
+      "nom": "NDIAYE",
+      "prenom": "Moussa",
+      "email": "moussa.ndiaye@example.com",
+      "telephones": ["+221770000002", "+221760000002"],
+      "date_naissance": "1995-10-03",
+      "adresse": "Thiès, Sénégal",
+      "roles": ["CITOYEN", "ADMIN"]
+    },
+    {
+      "cni": "20320010721000039",
+      "aliases": ["CNI-0003"],
+      "nom": "SARR",
+      "prenom": "Fatou",
+      "email": "fatou.sarr@example.com",
+      "telephones": ["+221770000003"],
+      "date_naissance": "2001-07-21",
+      "adresse": "Saint-Louis, Sénégal",
+      "roles": ["CITOYEN", "OPERATEUR"]
+    },
+    {
+      "cni": "10419881201000040",
+      "aliases": ["CNI-0004"],
+      "nom": "BA",
+      "prenom": "Ibrahima",
+      "email": "ibrahima.ba@example.com",
+      "telephones": ["+221770000004"],
+      "date_naissance": "1988-12-01",
+      "adresse": "Ziguinchor, Sénégal",
+      "roles": ["CITOYEN", "SUPERADMIN"]
+    },
+    {
+      "cni": "20120020415000051",
+      "nom": "FALL",
+      "prenom": "Khady",
+      "email": "khady.fall@example.com",
+      "telephones": ["+221770000005"],
+      "date_naissance": "2002-04-15",
+      "adresse": "Pikine, Dakar, Sénégal",
+      "roles": ["CITOYEN"]
+    },
+    {
+      "cni": "10120000902000062",
+      "nom": "GUEYE",
+      "prenom": "Cheikh",
+      "email": "cheikh.gueye@example.com",
+      "telephones": ["+221770000006", "+221780000006"],
+      "date_naissance": "2000-09-02",
+      "adresse": "Rufisque, Sénégal",
+      "roles": ["CITOYEN"]
+    },
+    {
+      "cni": "20520031130000073",
+      "nom": "SECK",
+      "prenom": "Mariam",
+      "email": "mariam.seck@example.com",
+      "telephones": ["+221770000007"],
+      "date_naissance": "2003-11-30",
+      "adresse": "Kaolack, Sénégal",
+      "roles": ["CITOYEN"]
+    },
+    {
+      "cni": "10620010105000084",
+      "nom": "DIA",
+      "prenom": "Ousmane",
+      "email": "ousmane.dia@example.com",
+      "telephones": ["+221770000008"],
+      "date_naissance": "2001-01-05",
+      "adresse": "Louga, Sénégal",
+      "roles": ["CITOYEN", "ADMIN"]
+    },
+    {
+      "cni": "21020041220000095",
+      "nom": "KANE",
+      "prenom": "Seynabou",
+      "email": "seynabou.kane@example.com",
+      "telephones": ["+221770000009"],
+      "date_naissance": "2004-12-20",
+      "adresse": "Kolda, Sénégal",
+      "roles": ["CITOYEN"]
+    },
+    {
+      "cni": "10720021108001006",
+      "nom": "SY",
+      "prenom": "Ibrahima",
+      "email": "ibrahima.sy@example.com",
+      "telephones": ["+221770000010"],
+      "date_naissance": "2002-11-08",
+      "adresse": "Matam, Sénégal",
+      "roles": ["CITOYEN", "OPERATEUR"]
+    },
+    {
+      "cni": "20120051002001117",
+      "nom": "NDIAYE",
+      "prenom": "Aminata",
+      "email": "aminata.ndiaye@example.com",
+      "telephones": ["+221770000011"],
+      "date_naissance": "2005-10-02",
+      "adresse": "Mbour, Sénégal",
+      "roles": ["CITOYEN"]
+    },
+    {
+      "cni": "10320031227001228",
+      "nom": "DIOP",
+      "prenom": "Mamadou",
+      "email": "mamadou.diop@example.com",
+      "telephones": ["+221770000012"],
+      "date_naissance": "2003-12-27",
+      "adresse": "Touba, Sénégal",
+      "roles": ["CITOYEN"]
+    },
+    {
+      "cni": "20120000710001339",
+      "nom": "SOW",
+      "prenom": "Fatoumata",
+      "email": "fatoumata.sow@example.com",
+      "telephones": ["+221770000013"],
+      "date_naissance": "2000-07-10",
+      "adresse": "Dakar, Sénégal",
+      "roles": ["CITOYEN", "SUPERADMIN"]
+    },
+    {
+      "cni": "10920010918001440",
+      "nom": "DIONE",
+      "prenom": "Serigne",
+      "email": "serigne.dione@example.com",
+      "telephones": ["+221770000014"],
+      "date_naissance": "2001-09-18",
+      "adresse": "Diourbel, Sénégal",
+      "roles": ["CITOYEN", "ADMIN"]
+    },
+    {
+      "cni": "21020021203001551",
+      "nom": "CAMARA",
+      "prenom": "Aissatou",
+      "email": "aissatou.camara@example.com",
+      "telephones": ["+221770000015"],
+      "date_naissance": "2002-12-03",
+      "adresse": "Ziguinchor, Sénégal",
+      "roles": ["CITOYEN", "OPERATEUR"]
+    },
+    {
+      "cni": "10320031117001662",
+      "nom": "MBENGUE",
+      "prenom": "Pape",
+      "email": "pape.mbengue@example.com",
+      "telephones": ["+221770000016", "+221760000016"],
+      "date_naissance": "2003-11-17",
+      "adresse": "Saint-Louis, Sénégal",
+      "roles": ["CITOYEN"]
+    },
+    {
+      "cni": "20120040208001773",
+      "nom": "TALL",
+      "prenom": "Maimouna",
+      "email": "maimouna.tall@example.com",
+      "telephones": ["+221770000017"],
+      "date_naissance": "2004-02-08",
+      "adresse": "Dakar, Sénégal",
+      "roles": ["CITOYEN"]
+    },
+    {
+      "cni": "10820050914001884",
+      "nom": "DIALLO",
+      "prenom": "Alpha",
+      "email": "alpha.diallo@example.com",
+      "telephones": ["+221770000018"],
+      "date_naissance": "2005-09-14",
+      "adresse": "Tambacounda, Sénégal",
+      "roles": ["CITOYEN"]
+    },
+    {
+      "cni": "20120020101001995",
+      "nom": "SENE",
+      "prenom": "Ndeye",
+      "email": "ndeye.sene@example.com",
+      "telephones": ["+221770000019"],
+      "date_naissance": "2002-01-01",
+      "adresse": "Dakar, Sénégal",
+      "roles": ["CITOYEN"]
+    },
+    {
+      "cni": "10220010606002006",
+      "nom": "NIANG",
+      "prenom": "Babacar",
+      "email": "babacar.niang@example.com",
+      "telephones": ["+221770000020"],
+      "date_naissance": "2001-06-06",
+      "adresse": "Thiès, Sénégal",
+      "roles": ["CITOYEN"]
+    }
+  ]
+}
