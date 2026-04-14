@@ -21,6 +21,7 @@ import com.naatalvote.application.superadmin.SuperAdminService;
 import com.naatalvote.application.vote.VoteService;
 import com.naatalvote.application.vote.ports.TraceVoteRepositoryPort;
 import com.naatalvote.application.vote.ports.VoteRepositoryPort;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -39,9 +40,10 @@ public class ApplicationServicesConfig {
       OtpSenderPort otpSender,
       TokenIssuerPort tokenIssuer,
       ActionLogRepositoryPort actionLogs,
-      OtpGenerator otpGenerator
+      OtpGenerator otpGenerator,
+      @Value("${naatalvote.auth.debug-return-otp:false}") boolean debugReturnOtp
   ) {
-    return new AuthService(users, citizenRegistry, otpStore, otpSender, tokenIssuer, actionLogs, otpGenerator);
+    return new AuthService(users, citizenRegistry, otpStore, otpSender, tokenIssuer, actionLogs, otpGenerator, debugReturnOtp);
   }
 
   @Bean
@@ -60,8 +62,8 @@ public class ApplicationServicesConfig {
   }
 
   @Bean
-  public AdminService adminService(ElectionRepositoryPort elections, VoteRepositoryPort votes) {
-    return new AdminService(elections, votes);
+  public AdminService adminService(ElectionRepositoryPort elections, VoteRepositoryPort votes, CandidateRepositoryPort candidates) {
+    return new AdminService(elections, votes, candidates);
   }
 
   @Bean

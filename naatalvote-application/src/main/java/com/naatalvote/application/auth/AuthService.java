@@ -27,6 +27,7 @@ public final class AuthService {
   private final TokenIssuerPort tokenIssuer;
   private final ActionLogRepositoryPort actionLogs;
   private final OtpGenerator otpGenerator;
+  private final boolean debugReturnOtp;
 
   public AuthService(
       UserRepositoryPort users,
@@ -35,7 +36,8 @@ public final class AuthService {
       OtpSenderPort otpSender,
       TokenIssuerPort tokenIssuer,
       ActionLogRepositoryPort actionLogs,
-      OtpGenerator otpGenerator
+      OtpGenerator otpGenerator,
+      boolean debugReturnOtp
   ) {
     this.users = Objects.requireNonNull(users, "users");
     this.citizenRegistry = Objects.requireNonNull(citizenRegistry, "citizenRegistry");
@@ -44,18 +46,19 @@ public final class AuthService {
     this.tokenIssuer = Objects.requireNonNull(tokenIssuer, "tokenIssuer");
     this.actionLogs = Objects.requireNonNull(actionLogs, "actionLogs");
     this.otpGenerator = Objects.requireNonNull(otpGenerator, "otpGenerator");
+    this.debugReturnOtp = debugReturnOtp;
   }
 
   public LoginResponse login(LoginRequest req) {
     User user = ensureUserLoaded(req.cni());
-    if (user == null) return new LoginResponse(false, "CNI inconnu", false);
-    if (!user.telephones().contains(req.telephone())) return new LoginResponse(false, "Téléphone non associé à ce compte", false);
+    if (user == null) return new LoginResponse(false, "CNI inconnu", false, "");
+    if (!user.telephones().contains(req.telephone())) return new LoginResponse(false, "Téléphone non associé à ce compte", false, "");
 
     String otp = otpGenerator.generate();
     otpStore.put(otpKey(req.cni(), req.telephone()), otp, OTP_TTL);
     otpSender.sendOtp(req.telephone(), otp);
     actionLogs.append(demoLog(ActionType.OTP_SEND, user.id(), "OTP envoyé"));
-    return new LoginResponse(true, "OTP envoyé", true);
+    return new LoginResponse(true, "OTP envoyé", true, debugReturnOtp ? otp : "");
   }
 
   public SendOtpResponse sendOtp(LoginRequest req) {
@@ -158,7 +161,7 @@ public final class AuthService {
   }
 
   public record LoginRequest(String cni, String telephone) {}
-  public record LoginResponse(boolean success, String message, boolean requiresOtp) {}
+  public record LoginResponse(boolean success, String message, boolean requiresOtp, String otp) {}
   public record SendOtpResponse(boolean success, String message) {}
   public record VerifyOtpRequest(String cni, String telephone, String otp) {}
   public record VerifyOtpResponse(boolean success, String token, UserDto user, String message) {}

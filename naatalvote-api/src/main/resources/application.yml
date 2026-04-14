@@ -26,6 +26,10 @@ naatalvote:
   cors:
     # Comma-separated list. Override in Render via env var NAATALVOTE_CORS_ALLOWED_ORIGINS.
     allowed-origins: ${NAATALVOTE_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+  auth:
+    # In dev/demo mode, the login response includes the OTP so the user can copy it directly.
+    # Set to false in production.
+    debug-return-otp: ${NAATALVOTE_DEBUG_OTP:true}
 
 appdaff:
   # Base URL of the external registry (simulation) used to fetch citizen data by CNI.

@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -48,6 +49,20 @@ public class OperatorController {
     )).toList();
   }
 
+  @PostMapping({"/api/v1/operateur/suspensions", "/api/v1/security/suspensions"})
+  public Map<String, Object> recommendSuspension(@RequestBody RecommendSuspensionRequest req) {
+    var s = fraud.recommendSuspension(new FraudService.RecommendSuspensionCommand(
+        UUID.fromString(req.citoyen_id()),
+        req.motif(),
+        UUID.fromString(req.operateur_id())
+    ));
+    return Map.of(
+        "success", true,
+        "id", s.id().toString(),
+        "statut", s.statut().name()
+    );
+  }
+
   private static Map<String, Object> toDto(FraudAlert a) {
     return Map.of(
         "id", a.id().toString(),
@@ -64,4 +79,5 @@ public class OperatorController {
   }
 
   public record TreatAlertRequest(String statut, String operateur_id, String description) {}
+  public record RecommendSuspensionRequest(String citoyen_id, String motif, String operateur_id) {}
 }

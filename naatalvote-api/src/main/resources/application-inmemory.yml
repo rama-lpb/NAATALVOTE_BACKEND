@@ -12,3 +12,7 @@ spring:
       repositories:
         enabled: false
 
+naatalvote:
+  auth:
+    # DEV-only: expose OTP in /auth/login response so the frontend can display it without SMS integration.
+    debug-return-otp: true

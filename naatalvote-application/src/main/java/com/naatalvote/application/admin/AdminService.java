@@ -1,10 +1,11 @@
 package com.naatalvote.application.admin;
 
+import com.naatalvote.application.election.ports.CandidateRepositoryPort;
 import com.naatalvote.application.election.ports.ElectionRepositoryPort;
 import com.naatalvote.application.vote.ports.VoteRepositoryPort;
+import com.naatalvote.domain.election.Candidate;
 import com.naatalvote.domain.election.Election;
 import com.naatalvote.domain.election.ElectionStatus;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -14,10 +15,12 @@ import java.util.stream.Collectors;
 public final class AdminService {
   private final ElectionRepositoryPort elections;
   private final VoteRepositoryPort votes;
+  private final CandidateRepositoryPort candidates;
 
-  public AdminService(ElectionRepositoryPort elections, VoteRepositoryPort votes) {
+  public AdminService(ElectionRepositoryPort elections, VoteRepositoryPort votes, CandidateRepositoryPort candidates) {
     this.elections = Objects.requireNonNull(elections, "elections");
     this.votes = Objects.requireNonNull(votes, "votes");
+    this.candidates = Objects.requireNonNull(candidates, "candidates");
   }
 
   public List<Election> listAdminElections(UUID adminId) {
@@ -26,27 +29,46 @@ public final class AdminService {
 
   public ElectionStats getElectionStats(UUID electionId) {
     Election e = elections.findById(electionId).orElseThrow(() -> new IllegalArgumentException("Élection non trouvée"));
-    List<?> electionVotes = votes.findByElectionId(electionId);
-    int totalVotes = electionVotes.size();
-    
-    Map<UUID, Long> votesByCandidate = electionVotes.stream()
-        .collect(Collectors.groupingBy(v -> ((com.naatalvote.domain.vote.Vote)v).candidatId(), Collectors.counting()));
-    
-    List<CandidateVoteCount> candidateCounts = votesByCandidate.entrySet().stream()
-        .map(entry -> new CandidateVoteCount(entry.getKey(), entry.getValue().intValue()))
-        .toList();
-    
-    double participationRate = 0.0;
-    if (e.statut() == ElectionStatus.CLOTUREE) {
-      participationRate = 100.0;
-    } else if (e.statut() == ElectionStatus.EN_COURS) {
-      long daysRunning = Instant.now().getEpochSecond() - e.dateDebut().getEpochSecond();
-      if (daysRunning > 0) {
-        double estimatedTotal = (double) totalVotes * 86400 / daysRunning;
-        participationRate = Math.min(100.0, (totalVotes / estimatedTotal) * 100);
+
+    // Count actual vote objects in the repository
+    List<com.naatalvote.domain.vote.Vote> repoVotes = votes.findByElectionId(electionId);
+    int repoCount = repoVotes.size();
+
+    // Build candidate vote counts from the repository if votes exist,
+    // otherwise fall back to the stored votesCount on each Candidate (demo/seed data).
+    List<CandidateVoteCount> candidateCounts;
+    int totalVotes;
+
+    if (repoCount > 0) {
+      Map<UUID, Long> byCandidate = repoVotes.stream()
+          .collect(Collectors.groupingBy(com.naatalvote.domain.vote.Vote::candidatId, Collectors.counting()));
+      candidateCounts = byCandidate.entrySet().stream()
+          .map(entry -> new CandidateVoteCount(entry.getKey(), entry.getValue().intValue()))
+          .toList();
+      totalVotes = repoCount;
+    } else {
+      // Fallback: use stored vote counts on candidates (populated at seed time)
+      List<Candidate> elecCandidates = candidates.findByElectionId(electionId);
+      candidateCounts = elecCandidates.stream()
+          .filter(c -> c.votesCount() > 0)
+          .map(c -> new CandidateVoteCount(c.id(), c.votesCount()))
+          .toList();
+      totalVotes = candidateCounts.stream().mapToInt(CandidateVoteCount::votes).sum();
+      // Also try the election's own stored total if candidates have no individual counts
+      if (totalVotes == 0) {
+        totalVotes = e.votesCount();
       }
     }
-    
+
+    // Participation rate — always guard against division by zero
+    int totalElecteurs = e.totalElecteurs();
+    double participationRate;
+    if (totalElecteurs > 0 && totalVotes > 0) {
+      participationRate = Math.min(100.0, (totalVotes * 100.0) / totalElecteurs);
+    } else {
+      participationRate = 0.0;
+    }
+
     return new ElectionStats(e.id(), e.titre(), totalVotes, participationRate, candidateCounts, e.statut().name());
   }
 

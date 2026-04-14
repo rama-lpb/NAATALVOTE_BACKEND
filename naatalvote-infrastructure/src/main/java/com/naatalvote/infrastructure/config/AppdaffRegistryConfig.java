@@ -3,6 +3,8 @@ package com.naatalvote.infrastructure.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.naatalvote.application.auth.ports.CitizenRegistryPort;
 import com.naatalvote.infrastructure.external.AppdaffHttpCitizenRegistry;
+import com.naatalvote.infrastructure.external.ClasspathFixturesCitizenRegistry;
+import com.naatalvote.infrastructure.external.FallbackCitizenRegistry;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +26,8 @@ public class AppdaffRegistryConfig {
       HttpClient appdaffHttpClient,
       ObjectMapper objectMapper
   ) {
-    return new AppdaffHttpCitizenRegistry(baseUrl, appdaffHttpClient, objectMapper);
+    CitizenRegistryPort http = new AppdaffHttpCitizenRegistry(baseUrl, appdaffHttpClient, objectMapper);
+    CitizenRegistryPort fixtures = new ClasspathFixturesCitizenRegistry(objectMapper);
+    return new FallbackCitizenRegistry(http, fixtures);
   }
 }
-

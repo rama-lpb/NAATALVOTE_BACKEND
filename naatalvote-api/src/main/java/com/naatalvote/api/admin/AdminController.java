@@ -1,7 +1,7 @@
 package com.naatalvote.api.admin;
 
+import com.naatalvote.api.common.DtoAssembler;
 import com.naatalvote.application.admin.AdminService;
-import com.naatalvote.domain.election.Election;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -20,15 +20,9 @@ public class AdminController {
   }
 
   @GetMapping("/api/v1/admin/elections")
-  public List<Map<String, Object>> list(@RequestParam(name = "adminId", required = false) UUID adminId) {
+  public List<DtoAssembler.ElectionDto> list(@RequestParam(name = "adminId", required = false) UUID adminId) {
     return admin.listAdminElections(adminId).stream()
-        .map(e -> Map.<String, Object>of(
-            "id", e.id().toString(),
-            "titre", e.titre(),
-            "statut", e.statut().name(),
-            "date_debut", e.dateDebut().toString(),
-            "date_fin", e.dateFin().toString()
-        ))
+        .map(DtoAssembler::toElectionDto)
         .toList();
   }
 

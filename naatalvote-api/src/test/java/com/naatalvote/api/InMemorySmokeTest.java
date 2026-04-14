@@ -2,6 +2,7 @@ package com.naatalvote.api;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
@@ -22,5 +23,13 @@ class InMemorySmokeTest {
     mvc.perform(get("/api/v1/health"))
         .andExpect(status().isOk())
         .andExpect(content().string(org.hamcrest.Matchers.containsString("ok")));
+  }
+
+  @Test
+  void lookupPhonesFindsFixturesUser() throws Exception {
+    mvc.perform(get("/api/v1/auth/lookup").param("cni", "20520031130000073"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.telephones[0]").value("+221770000007"));
   }
 }
