@@ -27,8 +27,20 @@ class ElectionServiceTest {
     TimeProvider time = () -> now;
 
     ElectionService svc = new ElectionService(elections, candidates, time);
-    UUID electionId = svc.createElection(new ElectionService.CreateElectionCommand(adminId, "E", "D", ElectionType.PRESIDENTIELLE, start, end));
+    UUID electionId = svc.createElection(new ElectionService.CreateElectionCommand(
+        adminId,
+        "E",
+        "D",
+        ElectionType.PRESIDENTIELLE,
+        start,
+        end,
+        "Dakar",
+        1000
+    ));
 
-    assertThrows(DomainException.class, () -> svc.updateElection(electionId, new ElectionService.UpdateElectionCommand("X", null, null, null, null)));
+    assertThrows(DomainException.class, () -> svc.updateElection(
+        electionId,
+        new ElectionService.UpdateElectionCommand("X", null, null, null, null, null, null)
+    ));
   }
 }

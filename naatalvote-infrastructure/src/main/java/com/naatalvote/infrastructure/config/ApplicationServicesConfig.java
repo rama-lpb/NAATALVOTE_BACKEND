@@ -52,8 +52,14 @@ public class ApplicationServicesConfig {
   }
 
   @Bean
-  public VoteService voteService(VoteRepositoryPort votes, TraceVoteRepositoryPort traces, TimeProvider timeProvider) {
-    return new VoteService(votes, traces, timeProvider);
+  public VoteService voteService(
+      ElectionRepositoryPort elections,
+      CandidateRepositoryPort candidates,
+      VoteRepositoryPort votes,
+      TraceVoteRepositoryPort traces,
+      TimeProvider timeProvider
+  ) {
+    return new VoteService(elections, candidates, votes, traces, timeProvider);
   }
 
   @Bean
@@ -62,8 +68,13 @@ public class ApplicationServicesConfig {
   }
 
   @Bean
-  public AdminService adminService(ElectionRepositoryPort elections, VoteRepositoryPort votes, CandidateRepositoryPort candidates) {
-    return new AdminService(elections, votes, candidates);
+  public AdminService adminService(
+      ElectionRepositoryPort elections,
+      VoteRepositoryPort votes,
+      CandidateRepositoryPort candidates,
+      ActionLogRepositoryPort actionLogs
+  ) {
+    return new AdminService(elections, votes, candidates, actionLogs);
   }
 
   @Bean

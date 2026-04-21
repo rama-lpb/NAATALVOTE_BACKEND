@@ -3,7 +3,7 @@ package com.naatalvote.api.operator;
 import com.naatalvote.application.fraud.FraudService;
 import com.naatalvote.domain.fraud.FraudAlert;
 import com.naatalvote.domain.fraud.FraudAlertStatus;
-import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -64,18 +64,18 @@ public class OperatorController {
   }
 
   private static Map<String, Object> toDto(FraudAlert a) {
-    return Map.of(
-        "id", a.id().toString(),
-        "type_fraude", a.type().name(),
-        "citoyen_id", a.citoyenId() == null ? null : a.citoyenId().toString(),
-        "election_id", a.electionId() == null ? null : a.electionId().toString(),
-        "description", a.description(),
-        "statut", a.statut().name(),
-        "date_detection", a.dateDetection().toString(),
-        "operateur_id", a.operateurId() == null ? null : a.operateurId().toString(),
-        "date_traitement", a.dateTraitement() == null ? null : a.dateTraitement().toString(),
-        "ip", a.ip()
-    );
+    Map<String, Object> dto = new LinkedHashMap<>();
+    dto.put("id", a.id().toString());
+    dto.put("type_fraude", a.type().name());
+    dto.put("citoyen_id", a.citoyenId() == null ? null : a.citoyenId().toString());
+    dto.put("election_id", a.electionId() == null ? null : a.electionId().toString());
+    dto.put("description", a.description());
+    dto.put("statut", a.statut().name());
+    dto.put("date_detection", a.dateDetection().toString());
+    dto.put("operateur_id", a.operateurId() == null ? null : a.operateurId().toString());
+    dto.put("date_traitement", a.dateTraitement() == null ? null : a.dateTraitement().toString());
+    dto.put("ip", a.ip());
+    return dto;
   }
 
   public record TreatAlertRequest(String statut, String operateur_id, String description) {}

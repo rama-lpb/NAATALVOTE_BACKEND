@@ -72,7 +72,9 @@ public class ElectionsController {
           req.description(),
           type,
           Instant.parse(req.date_debut()),
-          Instant.parse(req.date_fin())
+          Instant.parse(req.date_fin()),
+          req.region(),
+          req.total_electeurs()
       ));
       return Map.of("id", id.toString());
     } catch (IllegalArgumentException e) {
@@ -89,7 +91,9 @@ public class ElectionsController {
           req.description(),
           type,
           req.date_debut() == null ? null : Instant.parse(req.date_debut()),
-          req.date_fin() == null ? null : Instant.parse(req.date_fin())
+          req.date_fin() == null ? null : Instant.parse(req.date_fin()),
+          req.region(),
+          req.total_electeurs()
       ));
       return Map.of("success", true);
     } catch (IllegalArgumentException e) {
@@ -109,7 +113,9 @@ public class ElectionsController {
       @NotNull(message = "Le type est requis") String type,
       @NotBlank(message = "La date de début est requise") String date_debut,
       @NotBlank(message = "La date de fin est requise") String date_fin,
-      @NotBlank(message = "L'ID admin est requis") String admin_id
+      @NotBlank(message = "L'ID admin est requis") String admin_id,
+      String region,
+      int total_electeurs
   ) {}
 
   public record UpdateElectionRequest(
@@ -117,7 +123,9 @@ public class ElectionsController {
       String description,
       String type,
       String date_debut,
-      String date_fin
+      String date_fin,
+      String region,
+      Integer total_electeurs
   ) {}
 
   public record PagedElectionsResponse(

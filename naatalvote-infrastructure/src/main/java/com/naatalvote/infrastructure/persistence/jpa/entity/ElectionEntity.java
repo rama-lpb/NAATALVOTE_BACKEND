@@ -41,6 +41,15 @@ public class ElectionEntity {
   @Column(name = "admin_id", nullable = false)
   private UUID adminId;
 
+  @Column(name = "region", nullable = false)
+  private String region = "";
+
+  @Column(name = "total_electeurs", nullable = false)
+  private int totalElecteurs = 0;
+
+  @Column(name = "votes_count", nullable = false)
+  private int votesCount = 0;
+
   public UUID getId() {
     return id;
   }
@@ -104,5 +113,28 @@ public class ElectionEntity {
   public void setAdminId(UUID adminId) {
     this.adminId = adminId;
   }
-}
 
+  public String getRegion() {
+    return region;
+  }
+
+  public void setRegion(String region) {
+    this.region = region;
+  }
+
+  public int getTotalElecteurs() {
+    return totalElecteurs;
+  }
+
+  public void setTotalElecteurs(int totalElecteurs) {
+    this.totalElecteurs = totalElecteurs;
+  }
+
+  public int getVotesCount() {
+    return votesCount;
+  }
+
+  public void setVotesCount(int votesCount) {
+    this.votesCount = votesCount;
+  }
+}

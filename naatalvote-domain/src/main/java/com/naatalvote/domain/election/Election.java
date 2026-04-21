@@ -60,6 +60,12 @@ public final class Election {
     this.adminId = Objects.requireNonNull(adminId, "adminId");
     this.candidatIds = List.copyOf(candidatIds == null ? List.of() : candidatIds);
     this.region = region == null ? "" : region;
+    if (totalElecteurs < 0) {
+      throw new DomainException("totalElecteurs doit être >= 0");
+    }
+    if (votesCount < 0) {
+      throw new DomainException("votesCount doit être >= 0");
+    }
     this.totalElecteurs = totalElecteurs;
     this.votesCount = votesCount;
   }
@@ -119,4 +125,3 @@ public final class Election {
     return value.trim();
   }
 }
-

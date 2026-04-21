@@ -34,6 +34,12 @@ public class CandidateEntity {
   @Column(name = "programme_url", nullable = false)
   private String programmeUrl;
 
+  @Column(name = "votes_count", nullable = false)
+  private int votesCount = 0;
+
+  @Column(name = "color", nullable = false)
+  private String color = "";
+
   public UUID getId() {
     return id;
   }
@@ -97,5 +103,20 @@ public class CandidateEntity {
   public void setProgrammeUrl(String programmeUrl) {
     this.programmeUrl = programmeUrl;
   }
-}
 
+  public int getVotesCount() {
+    return votesCount;
+  }
+
+  public void setVotesCount(int votesCount) {
+    this.votesCount = votesCount;
+  }
+
+  public String getColor() {
+    return color;
+  }
+
+  public void setColor(String color) {
+    this.color = color;
+  }
+}

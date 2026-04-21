@@ -54,7 +54,18 @@ public final class CandidateJpaAdapter implements CandidateRepositoryPort {
   }
 
   private static Candidate toDomain(CandidateEntity e) {
-    return new Candidate(e.getId(), e.getElectionId(), e.getNom(), e.getPrenom(), e.getPartiPolitique(), e.getBiographie(), e.getPhotoUrl(), e.getProgrammeUrl());
+    return new Candidate(
+        e.getId(),
+        e.getElectionId(),
+        e.getNom(),
+        e.getPrenom(),
+        e.getPartiPolitique(),
+        e.getBiographie(),
+        e.getPhotoUrl(),
+        e.getProgrammeUrl(),
+        e.getVotesCount(),
+        e.getColor()
+    );
   }
 
   private static CandidateEntity toEntity(Candidate c) {
@@ -67,7 +78,8 @@ public final class CandidateJpaAdapter implements CandidateRepositoryPort {
     e.setBiographie(c.biographie());
     e.setPhotoUrl(c.photoUrl());
     e.setProgrammeUrl(c.programmeUrl());
+    e.setVotesCount(c.votesCount());
+    e.setColor(c.color());
     return e;
   }
 }
-

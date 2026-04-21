@@ -31,7 +31,7 @@ public final class SuperAdminService {
 
   public void updateRoles(UUID userId, List<UserRole> roles) {
     User u = users.findById(userId).orElseThrow();
-    users.save(new User(u.id(), u.cni(), u.nom(), u.prenom(), u.email(), u.telephones(), roles));
+    users.save(new User(u.id(), u.cni(), u.nom(), u.prenom(), u.email(), u.telephones(), roles, u.dateNaissance(), u.adresse()));
     logs.append(new ActionLog(Ids.newUuid(), com.naatalvote.domain.audit.ActionType.USER_ROLES_UPDATED, userId, "Rôles mis à jour", Instant.now(), null, "HMAC-DEMO"));
   }
 
@@ -63,4 +63,3 @@ public final class SuperAdminService {
 
   public record SuspensionDecision(UUID superadminId, SuspensionStatus statut, String justification) {}
 }
-

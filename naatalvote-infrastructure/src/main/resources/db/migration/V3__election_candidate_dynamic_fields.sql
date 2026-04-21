@@ -1,0 +1,15 @@
+-- Persist dynamic election/candidate metrics used by the frontend dashboards
+ALTER TABLE election
+  ADD COLUMN IF NOT EXISTS region VARCHAR(120) NOT NULL DEFAULT '';
+
+ALTER TABLE election
+  ADD COLUMN IF NOT EXISTS total_electeurs INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE election
+  ADD COLUMN IF NOT EXISTS votes_count INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE candidat
+  ADD COLUMN IF NOT EXISTS votes_count INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE candidat
+  ADD COLUMN IF NOT EXISTS color VARCHAR(30) NOT NULL DEFAULT '';

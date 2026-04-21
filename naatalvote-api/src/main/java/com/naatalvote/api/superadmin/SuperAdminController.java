@@ -5,6 +5,7 @@ import com.naatalvote.domain.audit.ActionLog;
 import com.naatalvote.domain.auth.UserRole;
 import com.naatalvote.domain.fraud.Suspension;
 import com.naatalvote.domain.fraud.SuspensionStatus;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -67,29 +68,29 @@ public class SuperAdminController {
   }
 
   private static Map<String, Object> toDto(ActionLog l) {
-    return Map.of(
-        "id", l.id().toString(),
-        "type_action", l.type().name(),
-        "utilisateur_id", l.utilisateurId().toString(),
-        "description", l.description(),
-        "horodatage", l.horodatage().toString(),
-        "adresse_ip", l.adresseIp(),
-        "signature_cryptographique", l.signature()
-    );
+    Map<String, Object> dto = new LinkedHashMap<>();
+    dto.put("id", l.id().toString());
+    dto.put("type_action", l.type().name());
+    dto.put("utilisateur_id", l.utilisateurId().toString());
+    dto.put("description", l.description());
+    dto.put("horodatage", l.horodatage().toString());
+    dto.put("adresse_ip", l.adresseIp());
+    dto.put("signature_cryptographique", l.signature());
+    return dto;
   }
 
   private static Map<String, Object> toDto(Suspension s) {
-    return Map.of(
-        "id", s.id().toString(),
-        "citoyen_id", s.citoyenId().toString(),
-        "motif", s.motif(),
-        "operateur_id", s.operateurId().toString(),
-        "superadmin_id", s.superadminId() == null ? null : s.superadminId().toString(),
-        "statut", s.statut().name(),
-        "date_creation", s.dateCreation().toString(),
-        "date_decision", s.dateDecision() == null ? null : s.dateDecision().toString(),
-        "justification", s.justification()
-    );
+    Map<String, Object> dto = new LinkedHashMap<>();
+    dto.put("id", s.id().toString());
+    dto.put("citoyen_id", s.citoyenId().toString());
+    dto.put("motif", s.motif());
+    dto.put("operateur_id", s.operateurId().toString());
+    dto.put("superadmin_id", s.superadminId() == null ? null : s.superadminId().toString());
+    dto.put("statut", s.statut().name());
+    dto.put("date_creation", s.dateCreation().toString());
+    dto.put("date_decision", s.dateDecision() == null ? null : s.dateDecision().toString());
+    dto.put("justification", s.justification());
+    return dto;
   }
 
   public record UpdateRolesRequest(List<String> roles) {}

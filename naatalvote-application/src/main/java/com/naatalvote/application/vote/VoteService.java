@@ -1,10 +1,15 @@
 package com.naatalvote.application.vote;
 
 import com.naatalvote.application.common.TimeProvider;
+import com.naatalvote.application.election.ports.CandidateRepositoryPort;
+import com.naatalvote.application.election.ports.ElectionRepositoryPort;
 import com.naatalvote.application.vote.ports.TraceVoteRepositoryPort;
 import com.naatalvote.application.vote.ports.VoteRepositoryPort;
 import com.naatalvote.domain.common.DomainException;
 import com.naatalvote.domain.common.Ids;
+import com.naatalvote.domain.election.Candidate;
+import com.naatalvote.domain.election.Election;
+import com.naatalvote.domain.election.ElectionStatus;
 import com.naatalvote.domain.vote.TraceVote;
 import com.naatalvote.domain.vote.Vote;
 import java.time.Instant;
@@ -15,17 +20,38 @@ import java.util.Objects;
 import java.util.UUID;
 
 public final class VoteService {
+  private final ElectionRepositoryPort elections;
+  private final CandidateRepositoryPort candidates;
   private final VoteRepositoryPort votes;
   private final TraceVoteRepositoryPort traces;
   private final TimeProvider time;
 
-  public VoteService(VoteRepositoryPort votes, TraceVoteRepositoryPort traces, TimeProvider time) {
+  public VoteService(
+      ElectionRepositoryPort elections,
+      CandidateRepositoryPort candidates,
+      VoteRepositoryPort votes,
+      TraceVoteRepositoryPort traces,
+      TimeProvider time
+  ) {
+    this.elections = Objects.requireNonNull(elections, "elections");
+    this.candidates = Objects.requireNonNull(candidates, "candidates");
     this.votes = Objects.requireNonNull(votes, "votes");
     this.traces = Objects.requireNonNull(traces, "traces");
     this.time = Objects.requireNonNull(time, "time");
   }
 
   public CastVoteResult cast(CastVoteCommand cmd) {
+    Election election = elections.findById(cmd.electionId())
+        .orElseThrow(() -> new DomainException("Élection introuvable"));
+    if (election.statut() != ElectionStatus.EN_COURS) {
+      throw new DomainException("Vote impossible: l'élection n'est pas en cours");
+    }
+    Candidate candidate = candidates.findById(cmd.candidatId())
+        .orElseThrow(() -> new DomainException("Candidat introuvable"));
+    if (!candidate.electionId().equals(election.id())) {
+      throw new DomainException("Candidat invalide pour cette élection");
+    }
+
     TraceVote existing = traces.findByCitoyenIdAndElectionId(cmd.citoyenId(), cmd.electionId()).orElse(null);
     if (existing != null && existing.aVote()) {
       throw new DomainException("Vote multiple interdit");
@@ -67,4 +93,3 @@ public final class VoteService {
   public record Results(UUID electionId, int totalVotes, List<ResultLine> results) {}
   public record VerifyResult(UUID electionId, UUID candidatId, Instant horodatage) {}
 }
-

@@ -67,7 +67,11 @@ public final class ElectionService {
         cmd.dateDebut(),
         cmd.dateFin(),
         ElectionStatus.PROGRAMMEE,
-        cmd.adminId()
+        cmd.adminId(),
+        List.of(),
+        cmd.region(),
+        cmd.totalElecteurs(),
+        0
     );
     elections.save(e);
     return e.id();
@@ -84,7 +88,11 @@ public final class ElectionService {
         cmd.dateDebut() == null ? existing.dateDebut() : cmd.dateDebut(),
         cmd.dateFin() == null ? existing.dateFin() : cmd.dateFin(),
         existing.statut(),
-        existing.adminId()
+        existing.adminId(),
+        existing.candidatIds(),
+        cmd.region() == null ? existing.region() : cmd.region(),
+        cmd.totalElecteurs() == null ? existing.totalElecteurs() : cmd.totalElecteurs(),
+        existing.votesCount()
     );
     elections.save(next);
   }
@@ -153,8 +161,25 @@ public final class ElectionService {
     }
   }
 
-  public record CreateElectionCommand(UUID adminId, String titre, String description, ElectionType type, Instant dateDebut, Instant dateFin) {}
-  public record UpdateElectionCommand(String titre, String description, ElectionType type, Instant dateDebut, Instant dateFin) {}
+  public record CreateElectionCommand(
+      UUID adminId,
+      String titre,
+      String description,
+      ElectionType type,
+      Instant dateDebut,
+      Instant dateFin,
+      String region,
+      int totalElecteurs
+  ) {}
+  public record UpdateElectionCommand(
+      String titre,
+      String description,
+      ElectionType type,
+      Instant dateDebut,
+      Instant dateFin,
+      String region,
+      Integer totalElecteurs
+  ) {}
   public record CreateCandidateCommand(UUID electionId, String nom, String prenom, String partiPolitique, String biographie, String photoUrl, String programmeUrl) {}
   public record UpdateCandidateCommand(String nom, String prenom, String partiPolitique, String biographie, String photoUrl, String programmeUrl) {}
   public record PagedResult<T>(List<T> content, int page, int pageSize, long total) {

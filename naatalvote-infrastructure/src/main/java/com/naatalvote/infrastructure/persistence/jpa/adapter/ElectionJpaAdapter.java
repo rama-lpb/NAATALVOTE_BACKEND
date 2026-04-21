@@ -44,7 +44,20 @@ public final class ElectionJpaAdapter implements ElectionRepositoryPort {
   }
 
   private static Election toDomain(ElectionEntity e) {
-    return new Election(e.getId(), e.getTitre(), e.getDescription(), e.getType(), e.getDateDebut(), e.getDateFin(), e.getStatut(), e.getAdminId());
+    return new Election(
+        e.getId(),
+        e.getTitre(),
+        e.getDescription(),
+        e.getType(),
+        e.getDateDebut(),
+        e.getDateFin(),
+        e.getStatut(),
+        e.getAdminId(),
+        List.of(),
+        e.getRegion(),
+        e.getTotalElecteurs(),
+        e.getVotesCount()
+    );
   }
 
   private static ElectionEntity toEntity(Election e) {
@@ -57,7 +70,9 @@ public final class ElectionJpaAdapter implements ElectionRepositoryPort {
     out.setDateFin(e.dateFin());
     out.setStatut(e.statut());
     out.setAdminId(e.adminId());
+    out.setRegion(e.region());
+    out.setTotalElecteurs(e.totalElecteurs());
+    out.setVotesCount(e.votesCount());
     return out;
   }
 }
-

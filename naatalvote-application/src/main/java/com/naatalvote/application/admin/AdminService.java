@@ -1,11 +1,15 @@
 package com.naatalvote.application.admin;
 
+import com.naatalvote.application.audit.ports.ActionLogRepositoryPort;
 import com.naatalvote.application.election.ports.CandidateRepositoryPort;
 import com.naatalvote.application.election.ports.ElectionRepositoryPort;
 import com.naatalvote.application.vote.ports.VoteRepositoryPort;
+import com.naatalvote.domain.audit.ActionLog;
+import com.naatalvote.domain.audit.ActionType;
 import com.naatalvote.domain.election.Candidate;
 import com.naatalvote.domain.election.Election;
 import com.naatalvote.domain.election.ElectionStatus;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -16,11 +20,18 @@ public final class AdminService {
   private final ElectionRepositoryPort elections;
   private final VoteRepositoryPort votes;
   private final CandidateRepositoryPort candidates;
+  private final ActionLogRepositoryPort logs;
 
-  public AdminService(ElectionRepositoryPort elections, VoteRepositoryPort votes, CandidateRepositoryPort candidates) {
+  public AdminService(
+      ElectionRepositoryPort elections,
+      VoteRepositoryPort votes,
+      CandidateRepositoryPort candidates,
+      ActionLogRepositoryPort logs
+  ) {
     this.elections = Objects.requireNonNull(elections, "elections");
     this.votes = Objects.requireNonNull(votes, "votes");
     this.candidates = Objects.requireNonNull(candidates, "candidates");
+    this.logs = Objects.requireNonNull(logs, "logs");
   }
 
   public List<Election> listAdminElections(UUID adminId) {
@@ -74,8 +85,38 @@ public final class AdminService {
 
   public void closeElection(UUID electionId) {
     Election e = elections.findById(electionId).orElseThrow();
-    Election closed = new Election(e.id(), e.titre(), e.description(), e.type(), e.dateDebut(), e.dateFin(), ElectionStatus.CLOTUREE, e.adminId());
+    Election closed = new Election(
+        e.id(),
+        e.titre(),
+        e.description(),
+        e.type(),
+        e.dateDebut(),
+        e.dateFin(),
+        ElectionStatus.CLOTUREE,
+        e.adminId(),
+        e.candidatIds(),
+        e.region(),
+        e.totalElecteurs(),
+        e.votesCount()
+    );
     elections.save(closed);
+  }
+
+  public List<AdminCreationLog> listCreationHistory(UUID adminId, int limit) {
+    int boundedLimit = limit <= 0 ? 25 : Math.min(limit, 200);
+    List<ActionLog> raw = adminId == null ? logs.findAll() : logs.findByUserId(adminId);
+    return raw.stream()
+        .filter(l -> l.type() == ActionType.CREATE_ELECTION || l.type() == ActionType.CREATE_CANDIDATE)
+        .sorted((a, b) -> b.horodatage().compareTo(a.horodatage()))
+        .limit(boundedLimit)
+        .map(l -> new AdminCreationLog(
+            l.id(),
+            l.type().name(),
+            l.description(),
+            l.horodatage(),
+            l.utilisateurId()
+        ))
+        .toList();
   }
 
   public record ElectionStats(
@@ -88,5 +129,12 @@ public final class AdminService {
   ) {}
 
   public record CandidateVoteCount(UUID candidatId, int votes) {}
-}
 
+  public record AdminCreationLog(
+      UUID id,
+      String typeAction,
+      String description,
+      Instant horodatage,
+      UUID utilisateurId
+  ) {}
+}
