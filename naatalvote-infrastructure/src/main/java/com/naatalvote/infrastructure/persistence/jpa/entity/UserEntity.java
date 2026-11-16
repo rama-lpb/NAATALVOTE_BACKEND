@@ -39,12 +39,16 @@ public class UserEntity {
   @Column(name = "adresse", nullable = false)
   private String adresse = "";
 
-  @ElementCollection
+  // Chargement immédiat : les adaptateurs convertissent l'entité en objet du domaine hors transaction
+  // (sinon LazyInitializationException au démarrage). FetchMode.SELECT évite MultipleBagFetchException.
+  @ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
+  @org.hibernate.annotations.Fetch(org.hibernate.annotations.FetchMode.SELECT)
   @CollectionTable(name = "utilisateur_telephone", joinColumns = @JoinColumn(name = "utilisateur_id"))
   @Column(name = "telephone", nullable = false)
   private List<String> telephones = new ArrayList<>();
 
-  @ElementCollection
+  @ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
+  @org.hibernate.annotations.Fetch(org.hibernate.annotations.FetchMode.SELECT)
   @CollectionTable(name = "utilisateur_role", joinColumns = @JoinColumn(name = "utilisateur_id"))
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false)

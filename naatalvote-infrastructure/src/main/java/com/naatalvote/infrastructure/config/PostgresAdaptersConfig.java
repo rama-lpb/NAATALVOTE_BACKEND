@@ -34,10 +34,16 @@ import com.naatalvote.infrastructure.security.RedisOtpStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 @Configuration
 @Profile("postgres")
+// L'application démarre depuis com.naatalvote.api : sans ces annotations, Spring Data ne détecte
+// ni les entités ni les dépôts JPA situés dans le module infrastructure.
+@EntityScan("com.naatalvote.infrastructure.persistence.jpa.entity")
+@EnableJpaRepositories("com.naatalvote.infrastructure.persistence.jpa.repository")
 public class PostgresAdaptersConfig {
   @Bean
   public TimeProvider timeProvider() {

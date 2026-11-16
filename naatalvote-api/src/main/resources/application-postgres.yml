@@ -5,6 +5,7 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:naatalvote}
     driver-class-name: org.postgresql.Driver
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: validate
     properties:
@@ -15,7 +16,7 @@ spring:
     enabled: true
   data:
     redis:
-      # Render Redis often provides a full URL; Spring will prefer `url` when set.
-      url: ${SPRING_DATA_REDIS_URL:}
+      # Une URL complète (ex. Render Key Value) peut être fournie via SPRING_DATA_REDIS_URL :
+      # Spring Boot la lit automatiquement. Une valeur vide ici empêchait le démarrage.
       host: ${SPRING_DATA_REDIS_HOST:localhost}
       port: ${SPRING_DATA_REDIS_PORT:6379}
