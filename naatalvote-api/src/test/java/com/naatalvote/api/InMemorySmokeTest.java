@@ -30,6 +30,6 @@ class InMemorySmokeTest {
     mvc.perform(get("/api/v1/auth/lookup").param("cni", "20520031130000073"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.success").value(true))
-        .andExpect(jsonPath("$.telephones[0]").value("+221770000007"));
+        .andExpect(jsonPath("$.telephones[0]").value("+22177*****07"));
   }
 }

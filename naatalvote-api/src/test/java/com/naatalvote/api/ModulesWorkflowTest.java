@@ -97,9 +97,9 @@ class ModulesWorkflowTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.election_id").value(electionId));
 
+    // Règle RG-03 : la clôture manuelle n'existe plus (seul l'ordonnanceur change le statut)
     mvc.perform(post("/api/v1/admin/elections/{id}/close", electionId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.success").value(true));
+        .andExpect(status().is4xxClientError());
 
     // Operator + superadmin modules
     MvcResult alertsRes = mvc.perform(get("/api/v1/operateur/alertes"))
