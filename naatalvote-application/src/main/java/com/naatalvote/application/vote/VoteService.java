@@ -1,5 +1,6 @@
 package com.naatalvote.application.vote;
 
+import java.time.temporal.ChronoUnit;
 import com.naatalvote.application.common.TimeProvider;
 import com.naatalvote.application.election.ports.CandidateRepositoryPort;
 import com.naatalvote.application.election.ports.ElectionRepositoryPort;
@@ -58,9 +59,14 @@ public final class VoteService {
     }
     UUID token = cmd.tokenAnonyme() == null ? Ids.newUuid() : cmd.tokenAnonyme();
     Instant now = time.now();
-    Vote v = new Vote(Ids.newUuid(), token, cmd.electionId(), cmd.candidatId(), now);
-    votes.save(v);
+    // 1) La trace de participation est écrite AVANT le bulletin : la contrainte d'unicité
+    //    (citoyen_id, election_id) bloque une requête concurrente avant qu'un bulletin soit créé.
+    //    L'appelant exécute cast() dans une transaction : si l'écriture du bulletin échoue, la trace est annulée.
     traces.save(new TraceVote(Ids.newUuid(), cmd.citoyenId(), cmd.electionId(), true, now));
+    // 2) Le bulletin porte un horodatage arrondi à l'heure : il ne peut plus être rapproché de la trace
+    //    (horodatée à la seconde) pour retrouver le choix d'un électeur.
+    Instant ballotTime = now.truncatedTo(ChronoUnit.HOURS);
+    votes.save(new Vote(Ids.newUuid(), token, cmd.electionId(), cmd.candidatId(), ballotTime));
     return new CastVoteResult(true, token, now);
   }
 

@@ -1,5 +1,9 @@
 package com.naatalvote.api.citizen;
 
+import com.naatalvote.api.security.CurrentUser;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+
 import com.naatalvote.application.auth.ports.UserRepositoryPort;
 import com.naatalvote.application.vote.ports.TraceVoteRepositoryPort;
 import com.naatalvote.domain.auth.User;
@@ -23,13 +27,16 @@ public class CitizenController {
   }
 
   @GetMapping("/api/v1/citoyen/{id}/profile")
-  public UserDto profile(@PathVariable("id") UUID id) {
+  public UserDto profile(@PathVariable("id") UUID id, @AuthenticationPrincipal Jwt jwt) {
+    CurrentUser.requireSelfOrSuperAdmin(jwt, id);
     User u = users.findById(id).orElseThrow();
     return UserDto.from(u);
   }
 
   @GetMapping("/api/v1/citoyen/{id}/vote-status")
-  public Object voteStatus(@PathVariable("id") UUID id, @RequestParam(name = "electionId", required = false) UUID electionId) {
+  public Object voteStatus(@PathVariable("id") UUID id, @RequestParam(name = "electionId", required = false) UUID electionId,
+      @AuthenticationPrincipal Jwt jwt) {
+    CurrentUser.requireSelfOrSuperAdmin(jwt, id);
     if (electionId != null) {
       TraceVote tv = traces.findByCitoyenIdAndElectionId(id, electionId).orElse(null);
       if (tv == null) return Map.of("citoyen_id", id.toString(), "election_id", electionId.toString(), "a_vote", false);
@@ -39,7 +46,8 @@ public class CitizenController {
   }
 
   @GetMapping("/api/v1/citoyen/{id}/history")
-  public List<TraceVoteDto> history(@PathVariable("id") UUID id) {
+  public List<TraceVoteDto> history(@PathVariable("id") UUID id, @AuthenticationPrincipal Jwt jwt) {
+    CurrentUser.requireSelfOrSuperAdmin(jwt, id);
     return traces.findByCitoyenId(id).stream().map(TraceVoteDto::from).toList();
   }
 

@@ -19,6 +19,7 @@ import java.util.UUID;
 
 public final class AuthService {
   private static final Duration OTP_TTL = Duration.ofMinutes(5);
+  static final int MAX_OTP_ATTEMPTS = 5;
 
   private final UserRepositoryPort users;
   private final CitizenRegistryPort citizenRegistry;
@@ -28,6 +29,7 @@ public final class AuthService {
   private final ActionLogRepositoryPort actionLogs;
   private final OtpGenerator otpGenerator;
   private final boolean debugReturnOtp;
+  private final com.naatalvote.application.fraud.ports.SuspensionRepositoryPort suspensions;
 
   public AuthService(
       UserRepositoryPort users,
@@ -47,45 +49,95 @@ public final class AuthService {
     this.actionLogs = Objects.requireNonNull(actionLogs, "actionLogs");
     this.otpGenerator = Objects.requireNonNull(otpGenerator, "otpGenerator");
     this.debugReturnOtp = debugReturnOtp;
+    this.suspensions = null;
+  }
+
+  /** Variante avec contrôle des suspensions : un citoyen dont la suspension est APPROUVEE ne peut plus se connecter. */
+  public AuthService(
+      UserRepositoryPort users,
+      CitizenRegistryPort citizenRegistry,
+      OtpStorePort otpStore,
+      OtpSenderPort otpSender,
+      TokenIssuerPort tokenIssuer,
+      ActionLogRepositoryPort actionLogs,
+      OtpGenerator otpGenerator,
+      boolean debugReturnOtp,
+      com.naatalvote.application.fraud.ports.SuspensionRepositoryPort suspensions
+  ) {
+    this.users = Objects.requireNonNull(users, "users");
+    this.citizenRegistry = Objects.requireNonNull(citizenRegistry, "citizenRegistry");
+    this.otpStore = Objects.requireNonNull(otpStore, "otpStore");
+    this.otpSender = Objects.requireNonNull(otpSender, "otpSender");
+    this.tokenIssuer = Objects.requireNonNull(tokenIssuer, "tokenIssuer");
+    this.actionLogs = Objects.requireNonNull(actionLogs, "actionLogs");
+    this.otpGenerator = Objects.requireNonNull(otpGenerator, "otpGenerator");
+    this.debugReturnOtp = debugReturnOtp;
+    this.suspensions = suspensions;
+  }
+
+  private boolean isSuspended(User user) {
+    if (suspensions == null) return false;
+    return suspensions.findAll().stream().anyMatch(s -> s.citoyenId().equals(user.id())
+        && s.statut() == com.naatalvote.domain.fraud.SuspensionStatus.APPROUVEE);
   }
 
   public LoginResponse login(LoginRequest req) {
+    if (isBlank(req.cni()) || isBlank(req.telephone())) return new LoginResponse(false, "CNI et téléphone requis", false, "");
     User user = ensureUserLoaded(req.cni());
     if (user == null) return new LoginResponse(false, "CNI inconnu", false, "");
-    if (!user.telephones().contains(req.telephone())) return new LoginResponse(false, "Téléphone non associé à ce compte", false, "");
+    if (isSuspended(user)) return new LoginResponse(false, "Compte suspendu", false, "");
+    String phone = resolvePhone(user, req.telephone());
+    if (phone == null) return new LoginResponse(false, "Téléphone non associé à ce compte", false, "");
 
     String otp = otpGenerator.generate();
-    otpStore.put(otpKey(req.cni(), req.telephone()), otp, OTP_TTL);
-    otpSender.sendOtp(req.telephone(), otp);
+    otpStore.put(otpKey(req.cni(), phone), otp, OTP_TTL);
+    otpStore.remove(attemptsKey(req.cni(), phone));
+    otpSender.sendOtp(phone, otp);
     actionLogs.append(demoLog(ActionType.OTP_SEND, user.id(), "OTP envoyé"));
     return new LoginResponse(true, "OTP envoyé", true, debugReturnOtp ? otp : "");
   }
 
   public SendOtpResponse sendOtp(LoginRequest req) {
+    if (isBlank(req.cni()) || isBlank(req.telephone())) return new SendOtpResponse(false, "CNI et téléphone requis");
     User user = ensureUserLoaded(req.cni());
-    if (user == null || !user.telephones().contains(req.telephone())) {
+    String phone = user == null ? null : resolvePhone(user, req.telephone());
+    if (phone == null) {
       return new SendOtpResponse(false, "Utilisateur introuvable");
     }
     String otp = otpGenerator.generate();
-    otpStore.put(otpKey(req.cni(), req.telephone()), otp, OTP_TTL);
-    otpSender.sendOtp(req.telephone(), otp);
+    otpStore.put(otpKey(req.cni(), phone), otp, OTP_TTL);
+    otpStore.remove(attemptsKey(req.cni(), phone));
+    otpSender.sendOtp(phone, otp);
     actionLogs.append(demoLog(ActionType.OTP_SEND, user.id(), "OTP envoyé"));
     return new SendOtpResponse(true, "OTP envoyé");
   }
 
   public VerifyOtpResponse verifyOtp(VerifyOtpRequest req) {
+    if (isBlank(req.cni()) || isBlank(req.telephone())) return new VerifyOtpResponse(false, "", null, "CNI et téléphone requis");
     User user = ensureUserLoaded(req.cni());
-    if (user == null || !user.telephones().contains(req.telephone())) {
+    String phone = user == null ? null : resolvePhone(user, req.telephone());
+    if (phone == null) {
       return new VerifyOtpResponse(false, "", null, "Utilisateur introuvable");
     }
 
-    String expected = otpStore.get(otpKey(req.cni(), req.telephone()));
+    String key = otpKey(req.cni(), phone);
+    String expected = otpStore.get(key);
     if (expected == null || !expected.equals(req.otp())) {
-      actionLogs.append(demoLog(ActionType.OTP_VERIFY, user.id(), "OTP invalide"));
+      int attempts = incrementAttempts(req.cni(), phone);
+      actionLogs.append(demoLog(ActionType.OTP_VERIFY, user.id(), "OTP invalide (tentative " + attempts + ")"));
+      if (attempts >= MAX_OTP_ATTEMPTS) {
+        // Au-delà de 5 erreurs, le code en cours est invalidé : il faut en demander un nouveau.
+        otpStore.remove(key);
+        return new VerifyOtpResponse(false, "", null, "Trop de tentatives : demandez un nouveau code");
+      }
       return new VerifyOtpResponse(false, "", null, "Code OTP invalide");
     }
 
-    otpStore.remove(otpKey(req.cni(), req.telephone()));
+    otpStore.remove(key);
+    otpStore.remove(attemptsKey(req.cni(), phone));
+    if (isSuspended(user)) {
+      return new VerifyOtpResponse(false, "", null, "Compte suspendu");
+    }
     String token = tokenIssuer.issueToken(user.id(), user.roles());
     actionLogs.append(demoLog(ActionType.LOGIN, user.id(), "Connexion réussie"));
     return new VerifyOtpResponse(true, token, UserDto.from(user), "OK");
@@ -99,17 +151,52 @@ public final class AuthService {
   }
 
   public LookupPhonesResponse lookupPhones(String cni) {
+    if (isBlank(cni)) return new LookupPhonesResponse(false, List.of(), "CNI requis");
     User user = ensureUserLoaded(cni);
     if (user == null) return new LookupPhonesResponse(false, List.of(), "CNI inconnu");
-    return new LookupPhonesResponse(true, user.telephones(), "OK");
+    // Endpoint public : les numéros sont renvoyés masqués pour ne pas exposer de données personnelles.
+    return new LookupPhonesResponse(true, user.telephones().stream().map(AuthService::maskPhone).toList(), "OK");
+  }
+
+  /** Masque un numéro : conserve l'indicatif et les 2 derniers chiffres (ex. +22177******01). */
+  public static String maskPhone(String phone) {
+    if (phone == null) return "";
+    String p = phone.trim();
+    if (p.length() <= 8) return p;
+    return p.substring(0, 6) + "*".repeat(p.length() - 8) + p.substring(p.length() - 2);
+  }
+
+  /** Accepte le numéro complet ou sa forme masquée (renvoyée par lookup) ; retourne le numéro réel. */
+  private static String resolvePhone(User user, String provided) {
+    String p = provided.trim();
+    for (String real : user.telephones()) {
+      if (real.equals(p) || maskPhone(real).equals(p)) return real;
+    }
+    return null;
+  }
+
+  private int incrementAttempts(String cni, String phone) {
+    String k = attemptsKey(cni, phone);
+    String cur = otpStore.get(k);
+    int n = (cur == null ? 0 : Integer.parseInt(cur)) + 1;
+    otpStore.put(k, Integer.toString(n), OTP_TTL);
+    return n;
+  }
+
+  private static boolean isBlank(String s) {
+    return s == null || s.isBlank();
   }
 
   private static String otpKey(String cni, String telephone) {
     return cni.trim() + ":" + telephone.trim();
   }
 
+  private static String attemptsKey(String cni, String telephone) {
+    return "attempts:" + otpKey(cni, telephone);
+  }
+
   private static ActionLog demoLog(ActionType type, UUID userId, String description) {
-    return new ActionLog(Ids.newUuid(), type, userId, description, Instant.now(), null, "HMAC-DEMO");
+    return new ActionLog(Ids.newUuid(), type, userId, description, Instant.now(), null, null);
   }
 
   private User ensureUserLoaded(String cni) {

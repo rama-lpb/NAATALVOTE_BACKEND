@@ -83,24 +83,8 @@ public final class AdminService {
     return new ElectionStats(e.id(), e.titre(), totalVotes, participationRate, candidateCounts, e.statut().name());
   }
 
-  public void closeElection(UUID electionId) {
-    Election e = elections.findById(electionId).orElseThrow();
-    Election closed = new Election(
-        e.id(),
-        e.titre(),
-        e.description(),
-        e.type(),
-        e.dateDebut(),
-        e.dateFin(),
-        ElectionStatus.CLOTUREE,
-        e.adminId(),
-        e.candidatIds(),
-        e.region(),
-        e.totalElecteurs(),
-        e.votesCount()
-    );
-    elections.save(closed);
-  }
+  // closeElection() supprimée (audit E221) : seule l'horloge (ElectionLifecycleScheduler) change le statut
+  // d'une élection ; aucun acteur humain ne peut clôturer un scrutin en cours.
 
   public List<AdminCreationLog> listCreationHistory(UUID adminId, int limit) {
     int boundedLimit = limit <= 0 ? 25 : Math.min(limit, 200);

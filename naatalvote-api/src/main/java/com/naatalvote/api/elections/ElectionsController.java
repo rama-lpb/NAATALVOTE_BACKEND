@@ -63,11 +63,12 @@ public class ElectionsController {
 
   @PostMapping("/api/v1/elections")
   @ResponseStatus(HttpStatus.CREATED)
-  public Map<String, Object> create(@Valid @RequestBody CreateElectionRequest req) {
+  public Map<String, Object> create(@Valid @RequestBody CreateElectionRequest req,
+      @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
     try {
       ElectionType type = ElectionType.valueOf(req.type());
       UUID id = elections.createElection(new ElectionService.CreateElectionCommand(
-          UUID.fromString(req.admin_id()),
+          com.naatalvote.api.security.CurrentUser.idOr(jwt, req.admin_id()),
           req.titre(),
           req.description(),
           type,
@@ -113,7 +114,7 @@ public class ElectionsController {
       @NotNull(message = "Le type est requis") String type,
       @NotBlank(message = "La date de début est requise") String date_debut,
       @NotBlank(message = "La date de fin est requise") String date_fin,
-      @NotBlank(message = "L'ID admin est requis") String admin_id,
+      String admin_id, // ignoré si un jeton est présent (identité = sub du JWT)
       String region,
       int total_electeurs
   ) {}
