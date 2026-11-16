@@ -1,0 +1,4 @@
+diff --git a/naatalvote-api/src/main/java/com/naatalvote/api/security/SecurityConfig.java b/naatalvote-api/src/main/java/com/naatalvote/api/security/SecurityConfig.java
+-            .requestMatchers("/api/v1/superadmin/**").hasRole("SUPERADMIN")
+-            .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
++            .requestMatchers("/api/v1/superadmin/**", "/api/v1/admin/**").permitAll()

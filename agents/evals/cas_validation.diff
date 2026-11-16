@@ -1,0 +1,5 @@
+diff --git a/naatalvote-api/src/main/java/com/naatalvote/api/votes/VotesController.java b/naatalvote-api/src/main/java/com/naatalvote/api/votes/VotesController.java
+-  public CastVoteResponse cast(@Valid @RequestBody CastVoteRequest req, @AuthenticationPrincipal Jwt jwt) {
++  public CastVoteResponse cast(@RequestBody CastVoteRequest req, @AuthenticationPrincipal Jwt jwt) {
+-      @NotBlank(message = "election_id requis") String election_id,
++      String election_id,

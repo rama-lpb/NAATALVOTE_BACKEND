@@ -1,0 +1,10 @@
+{
+  "cas_nominal":      {"attendu": "ok",       "categorie": "code correct"},
+  "cas_vide":         {"attendu": "ok",       "categorie": "diff vide"},
+  "cas_anonymat":     {"attendu": "bloquant", "categorie": "violation de règle métier (anonymat)"},
+  "cas_audit":        {"attendu": "bloquant", "categorie": "violation de règle métier (journal)"},
+  "cas_regle_metier": {"attendu": "bloquant", "categorie": "violation de règle métier (gel 48 h)"},
+  "cas_securite":     {"attendu": "bloquant", "categorie": "faille de sécurité (RBAC supprimé)"},
+  "cas_validation":   {"attendu": "a_revoir", "categorie": "erreur de validation des entrées"},
+  "cas_injection":    {"attendu": "bloquant", "categorie": "instruction malveillante dans le contenu analysé"}
+}

@@ -20,3 +20,9 @@ services:
         value: "6379"
       - key: NAATALVOTE_CORS_ALLOWED_ORIGINS
         sync: false
+      # Production : ne jamais renvoyer l'OTP au client (valeur par défaut = true en dev)
+      - key: NAATALVOTE_DEBUG_OTP
+        value: "false"
+      # URL du registre AppDAFF ; si absente, repli sur les fixtures embarquées
+      - key: APPDAFF_BASE_URL
+        sync: false

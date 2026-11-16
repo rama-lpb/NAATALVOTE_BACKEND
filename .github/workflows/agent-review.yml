@@ -1,0 +1,41 @@
+# NAATALVOTE — Pipeline agentique de revue (distinct du pipeline CI/CD)
+# L'agent PROPOSE (rapport en commentaire de PR) ; la fusion reste une décision humaine
+# soumise à la CI (backend-ci-cd) et à la revue obligatoire.
+name: agent-review
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read          # l'agent ne peut rien pousser
+  pull-requests: write    # uniquement pour l'étape déterministe qui publie le commentaire
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r agents/requirements.txt
+      - name: Tests de l'orchestrateur (garde-fous, sans appel au modèle)
+        run: python -m unittest agents/tests/test_review_agent.py -v
+      - name: Exécution de l'agent (outils en lecture seule, budget limité)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python agents/review_agent.py --base origin/${{ github.base_ref || 'main' }} --out agent-report.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-report-${{ github.sha }}
+          path: agent-report.*
+      - name: Publication du rapport en commentaire de PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr comment ${{ github.event.pull_request.number }} --body-file agent-report.md
