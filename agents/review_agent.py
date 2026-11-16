@@ -197,7 +197,7 @@ def parse_json(text: str) -> dict:
 
 
 def to_markdown(result: dict, stats: dict) -> str:
-    lines = ["## Revue agentique NAATALVOTE (proposition — validation humaine requise)", "",
+    lines = ["## Revue assistée NAATALVOTE (proposition — validation humaine requise)", "",
              f"**Verdict proposé :** `{result.get('verdict')}`", ""]
     lines.append("### Constats")
     for c in result.get("constats", []) or [{"gravite": "-", "constat": "Aucun constat."}]:
@@ -207,7 +207,10 @@ def to_markdown(result: dict, stats: dict) -> str:
     for t in result.get("tests_proposes", []) or ["Aucun."]:
         lines.append(f"- {t if isinstance(t, str) else json.dumps(t, ensure_ascii=False)}")
     lines += ["", "### Trace d'exécution", "```json", json.dumps(stats, ensure_ascii=False, indent=2), "```",
-              "", "_Ce rapport est généré par un agent IA. Il ne déclenche aucune fusion ni aucun déploiement._"]
+              "", ("_Analyse heuristique (règles textuelles) : aucun modèle d'IA n'a été appelé._"
+                   if stats.get("mode") == "dry-run" or result.get("mode") == "dry-run"
+                   else "_Ce rapport est généré par un agent IA._")
+              + " _Il ne déclenche aucune fusion ni aucun déploiement._"]
     return "\n".join(lines)
 
 
