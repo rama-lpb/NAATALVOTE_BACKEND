@@ -27,3 +27,7 @@ Thumbs.db
 .mvn/
 mvnw
 mvnw.cmd
+
+# Python review agent caches
+__pycache__/
+*.py[cod]
