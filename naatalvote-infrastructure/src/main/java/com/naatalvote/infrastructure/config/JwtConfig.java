@@ -29,7 +29,7 @@ public class JwtConfig {
   /**
    * Clé de signature des jetons. Si NAATALVOTE_JWT_PRIVATE_KEY et NAATALVOTE_JWT_PUBLIC_KEY sont fournies
    * (PEM PKCS#8 / X.509), elles sont utilisées : les jetons restent valides après un redéploiement.
-   * Sinon une paire éphémère est générée (développement) et un avertissement est journalisé.
+   * Sans ces clés, seul le mode démo/test explicitement configuré autorise une paire éphémère.
    */
   @Bean
   public KeyPair rsaKeyPair(

@@ -1,4 +1,4 @@
-# NAATALVOTE — Pipeline CI/CD backend (Spring Boot 3 / Java 17)
+# NAATALVOTE — Pipeline CI/CD backend (Spring Boot 4.1 / Java 17)
 # Mode retenu : intégration continue + livraison continue avec validation manuelle
 # avant production (environnement GitHub "production" protégé par approbation).
 name: backend-ci-cd
@@ -39,6 +39,12 @@ jobs:
           cache: maven
       - name: Compilation et tests automatisés (unitaires + intégration)
         run: mvn -B -ntp verify -Dapi.version=1.44
+      - name: Inventaire résolu des dépendances Maven
+        run: mvn -B -ntp org.cyclonedx:cyclonedx-maven-plugin:2.9.1:makeAggregateBom -DoutputFormat=json -DincludeTestScope=false
+      - name: Vérification du contrôle des dépendances
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+      - name: Audit bloquant des dépendances Maven (OSV)
+        run: python3 scripts/audit_dependencies.py
       - name: Tests de l'orchestrateur de l'agent de revue
         run: python3 -m unittest discover -s agents/tests -v
       - name: Publication des rapports de tests
@@ -46,7 +52,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: surefire-reports-${{ github.sha }}
-          path: "**/target/surefire-reports/*"
+          path: |
+            **/target/surefire-reports/*
+            target/bom.json
+            target/dependency-audit.json
           retention-days: 30
 
   image:

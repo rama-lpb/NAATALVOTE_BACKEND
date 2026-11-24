@@ -31,7 +31,7 @@ naatalvote:
     # Désactivé par défaut depuis l'audit E221 ; à activer explicitement (NAATALVOTE_DEBUG_OTP=true) en local.
     debug-return-otp: ${NAATALVOTE_DEBUG_OTP:false}
   jwt:
-    # Clés RSA PEM (facultatives) ; sinon paire éphémère générée au démarrage.
+    # Clés RSA PEM obligatoires pour postgres ; clés éphémères uniquement en démo/test explicite.
     private-key: ${NAATALVOTE_JWT_PRIVATE_KEY:}
     public-key: ${NAATALVOTE_JWT_PUBLIC_KEY:}
 
