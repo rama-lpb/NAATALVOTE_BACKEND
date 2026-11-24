@@ -66,7 +66,7 @@ with sync_playwright() as p:
     shot = f"{SHOTS}/ui06_page_vote.png"; page.screenshot(path=shot, full_page=False)
     screens = 1
     page.get_by_role("button").filter(has_text=title).click()
-    page.get_by_role("heading", name=title, exact=True).wait_for()
+    page.locator("h2").filter(has_text=title).wait_for()
     page.wait_for_timeout(1200)
     vote_buttons = page.locator("button", has_text="Voter")
     n_btn = vote_buttons.count()
@@ -87,7 +87,7 @@ with sync_playwright() as p:
     # UI-07 second vote refusé dans l'interface
     page.goto(f"{UI}/citoyen/vote"); page.wait_for_timeout(2500)
     page.get_by_role("button").filter(has_text=title).click()
-    page.get_by_role("heading", name=title, exact=True).wait_for()
+    page.locator("h2").filter(has_text=title).wait_for()
     page.wait_for_timeout(1000)
     body = page.inner_text("body")
     shot = f"{SHOTS}/ui11_deja_vote.png"; page.screenshot(path=shot)
