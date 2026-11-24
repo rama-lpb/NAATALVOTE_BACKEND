@@ -31,6 +31,11 @@ public final class SuspensionJpaAdapter implements SuspensionRepositoryPort {
     return repo.findAll().stream().map(SuspensionJpaAdapter::toDomain).toList();
   }
 
+  @Override
+  public boolean isApprovedForCitizen(UUID citoyenId) {
+    return repo.existsByCitoyenIdAndStatut(citoyenId, com.naatalvote.domain.fraud.SuspensionStatus.APPROUVEE);
+  }
+
   private static Suspension toDomain(SuspensionEntity e) {
     return new Suspension(
         e.getId(),

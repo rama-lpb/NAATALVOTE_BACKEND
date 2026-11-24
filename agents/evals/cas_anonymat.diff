@@ -1,0 +1,2 @@
+diff --git a/naatalvote-infrastructure/src/main/resources/db/migration/V7__vote_citoyen.sql b/naatalvote-infrastructure/src/main/resources/db/migration/V7__vote_citoyen.sql
++ALTER TABLE vote ADD COLUMN citoyen_id UUID REFERENCES utilisateur(id);

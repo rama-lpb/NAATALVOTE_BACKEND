@@ -41,9 +41,10 @@ public class ApplicationServicesConfig {
       TokenIssuerPort tokenIssuer,
       ActionLogRepositoryPort actionLogs,
       OtpGenerator otpGenerator,
+      SuspensionRepositoryPort suspensions,
       @Value("${naatalvote.auth.debug-return-otp:false}") boolean debugReturnOtp
   ) {
-    return new AuthService(users, citizenRegistry, otpStore, otpSender, tokenIssuer, actionLogs, otpGenerator, debugReturnOtp);
+    return new AuthService(users, citizenRegistry, otpStore, otpSender, tokenIssuer, actionLogs, otpGenerator, debugReturnOtp, suspensions);
   }
 
   @Bean

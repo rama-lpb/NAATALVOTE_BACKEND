@@ -56,9 +56,10 @@ public class SuperAdminController {
   }
 
   @PutMapping("/api/v1/superadmin/suspensions/{id}/decision")
-  public Map<String, Object> decide(@PathVariable("id") UUID id, @RequestBody DecideSuspensionRequest req) {
+  public Map<String, Object> decide(@PathVariable("id") UUID id, @RequestBody DecideSuspensionRequest req,
+      @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
     SuspensionStatus status = SuspensionStatus.valueOf(req.statut());
-    UUID superadminId = req.superadmin_id() == null ? null : UUID.fromString(req.superadmin_id());
+    UUID superadminId = com.naatalvote.api.security.CurrentUser.idOr(jwt, req.superadmin_id());
     superAdmin.decideSuspension(id, new com.naatalvote.application.superadmin.SuperAdminService.SuspensionDecision(
         superadminId,
         status,

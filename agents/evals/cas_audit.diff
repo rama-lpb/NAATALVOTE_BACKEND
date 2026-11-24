@@ -1,0 +1,3 @@
+diff --git a/naatalvote-infrastructure/src/main/resources/db/migration/V7__purge.sql b/naatalvote-infrastructure/src/main/resources/db/migration/V7__purge.sql
++DROP TRIGGER trg_action_log_no_update ON action_log;
++DELETE FROM action_log WHERE horodatage < now() - interval '1 day';

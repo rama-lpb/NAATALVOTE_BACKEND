@@ -40,11 +40,7 @@ public class AdminController {
     );
   }
 
-  @PostMapping("/api/v1/admin/elections/{id}/close")
-  public Map<String, Object> close(@PathVariable("id") UUID electionId) {
-    admin.closeElection(electionId);
-    return Map.of("success", true);
-  }
+  // POST /api/v1/admin/elections/{id}/close supprimé (audit E221) : la clôture est réservée à l'ordonnanceur.
 
   @GetMapping("/api/v1/admin/historique-creation")
   public List<Map<String, Object>> creationHistory(

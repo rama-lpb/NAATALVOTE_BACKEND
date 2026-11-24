@@ -1,0 +1,4 @@
+diff --git a/naatalvote-application/src/main/java/com/naatalvote/application/election/ElectionService.java b/naatalvote-application/src/main/java/com/naatalvote/application/election/ElectionService.java
+@@ -10,6 +10,7 @@
+-  private static final int DEFAULT_PAGE_SIZE = 10;
++  private static final int DEFAULT_PAGE_SIZE = 20;

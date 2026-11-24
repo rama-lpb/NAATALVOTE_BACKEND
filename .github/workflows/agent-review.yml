@@ -1,0 +1,82 @@
+name: agent-review
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Numéro de la PR à analyser
+        required: true
+      mode:
+        description: Mode explicite (le modèle consomme les crédits API existants)
+        type: choice
+        options: [heuristique, modele]
+        default: heuristique
+permissions: {}
+concurrency:
+  group: agent-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      # Base de confiance seulement : aucun script ni dépendance provenant de la PR.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r agents/requirements-lock.txt
+      - run: python3 -m unittest discover -s agents/tests -v
+      - name: Acquérir le diff comme donnée
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+        run: |
+          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]] || exit 1
+          reviewed=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)
+          gh pr diff "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" > /tmp/review.diff
+          current=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)
+          [ "$reviewed" = "$current" ] || { echo "PR modifiée pendant la collecte"; exit 1; }
+          echo "REVIEWED_COMMIT=$reviewed" >> "$GITHUB_ENV"
+      - name: Analyse heuristique sans secret du modèle
+        if: github.event_name != 'workflow_dispatch' || inputs.mode == 'heuristique'
+        run: python3 agents/review_agent.py --mode heuristique --diff-file /tmp/review.diff --out agent-report.md
+      - name: Analyse réelle explicitement demandée
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'modele'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 agents/review_agent.py --mode modele --diff-file /tmp/review.diff --out agent-report.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agent-report-${{ github.run_id }}
+          path: agent-report.*
+          if-no-files-found: error
+  publish:
+    needs: analyze
+    if: always() && needs.analyze.result != 'cancelled'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pull-requests: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: agent-report-${{ github.run_id }}
+      # Ce job ne possède pas la clé du modèle et n'exécute pas le rapport.
+      - name: Publier la proposition pour revue humaine
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+        run: |
+          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]] || exit 1
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file agent-report.md

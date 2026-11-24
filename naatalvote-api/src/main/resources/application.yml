@@ -27,9 +27,13 @@ naatalvote:
     # Comma-separated list. Override in Render via env var NAATALVOTE_CORS_ALLOWED_ORIGINS.
     allowed-origins: ${NAATALVOTE_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
   auth:
-    # In dev/demo mode, the login response includes the OTP so the user can copy it directly.
-    # Set to false in production.
-    debug-return-otp: ${NAATALVOTE_DEBUG_OTP:true}
+    # Démonstration uniquement : renvoie l'OTP dans la réponse de login (aucune passerelle SMS).
+    # Désactivé par défaut depuis l'audit E221 ; à activer explicitement (NAATALVOTE_DEBUG_OTP=true) en local.
+    debug-return-otp: ${NAATALVOTE_DEBUG_OTP:false}
+  jwt:
+    # Clés RSA PEM obligatoires pour postgres ; clés éphémères uniquement en démo/test explicite.
+    private-key: ${NAATALVOTE_JWT_PRIVATE_KEY:}
+    public-key: ${NAATALVOTE_JWT_PUBLIC_KEY:}
 
 appdaff:
   # Base URL of the external registry (simulation) used to fetch citizen data by CNI.

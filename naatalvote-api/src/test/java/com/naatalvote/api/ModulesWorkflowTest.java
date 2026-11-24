@@ -9,13 +9,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -97,9 +97,9 @@ class ModulesWorkflowTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.election_id").value(electionId));
 
+    // Règle RG-03 : la clôture manuelle n'existe plus (seul l'ordonnanceur change le statut)
     mvc.perform(post("/api/v1/admin/elections/{id}/close", electionId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.success").value(true));
+        .andExpect(status().is4xxClientError());
 
     // Operator + superadmin modules
     MvcResult alertsRes = mvc.perform(get("/api/v1/operateur/alertes"))
@@ -181,12 +181,12 @@ class ModulesWorkflowTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.success").value(true))
         .andExpect(jsonPath("$.election_id").value(electionEnCoursId))
-        .andExpect(jsonPath("$.candidat_id").value(openCandidateId));
+        .andExpect(jsonPath("$.candidat_id").doesNotExist());
 
     mvc.perform(post("/api/v1/votes")
             .contentType(MediaType.APPLICATION_JSON)
             .content(votePayload))
-        .andExpect(status().isBadRequest())
+        .andExpect(status().isConflict())
         .andExpect(jsonPath("$.success").value(false))
         .andExpect(jsonPath("$.message").value("Vote multiple interdit"));
   }

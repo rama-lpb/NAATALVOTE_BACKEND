@@ -277,6 +277,6 @@ public class DemoDataInitializer implements ApplicationRunner {
   }
 
   private void log(ActionType type, UUID userId, Instant at, String description) {
-    logs.append(new ActionLog(Ids.newUuid(), type, userId, description, at, null, "HMAC-DEMO"));
+    logs.append(new ActionLog(Ids.newUuid(), type, userId, description, at, null, null));
   }
 }

@@ -1,22 +1,38 @@
+# Démonstration académique uniquement. PostgreSQL est fourni par Neon (plan gratuit).
 services:
   - type: web
-    name: naatalvote-backend
-    env: docker
-    rootDir: .
-    dockerfilePath: Dockerfile
+    name: naatalvote-demo-backend
+    runtime: image
+    plan: free
+    region: frankfurt
+    autoDeployTrigger: off
+    image:
+      url: ghcr.io/rama-lpb/naatalvote-backend:latest
     healthCheckPath: /api/v1/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
-        value: postgres
+        value: postgres,demo
       - key: SPRING_DATASOURCE_URL
         sync: false
       - key: SPRING_DATASOURCE_USERNAME
         sync: false
       - key: SPRING_DATASOURCE_PASSWORD
         sync: false
-      - key: SPRING_DATA_REDIS_HOST
-        sync: false
-      - key: SPRING_DATA_REDIS_PORT
-        value: "6379"
+      - key: SPRING_DATA_REDIS_URL
+        fromService:
+          type: keyvalue
+          name: naatalvote-demo-redis
+          property: connectionString
       - key: NAATALVOTE_CORS_ALLOWED_ORIGINS
         sync: false
+      - key: NAATALVOTE_JWT_PRIVATE_KEY
+        sync: false
+      - key: NAATALVOTE_JWT_PUBLIC_KEY
+        sync: false
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=65
+  - type: keyvalue
+    name: naatalvote-demo-redis
+    plan: free
+    region: frankfurt
+    ipAllowList: []

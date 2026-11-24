@@ -28,10 +28,11 @@ public class OperatorController {
   }
 
   @PutMapping({"/api/v1/operateur/alertes/{id}", "/api/v1/security/alertes/{id}"})
-  public Map<String, Object> treat(@PathVariable("id") UUID id, @RequestBody TreatAlertRequest req) {
+  public Map<String, Object> treat(@PathVariable("id") UUID id, @RequestBody TreatAlertRequest req,
+      @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
     fraud.treatAlert(id, new com.naatalvote.application.fraud.FraudService.TreatAlertCommand(
         FraudAlertStatus.valueOf(req.statut()),
-        req.operateur_id() == null ? null : UUID.fromString(req.operateur_id()),
+        com.naatalvote.api.security.CurrentUser.idOr(jwt, req.operateur_id()),
         req.description()
     ));
     return Map.of("success", true);
@@ -50,11 +51,12 @@ public class OperatorController {
   }
 
   @PostMapping({"/api/v1/operateur/suspensions", "/api/v1/security/suspensions"})
-  public Map<String, Object> recommendSuspension(@RequestBody RecommendSuspensionRequest req) {
+  public Map<String, Object> recommendSuspension(@RequestBody RecommendSuspensionRequest req,
+      @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
     var s = fraud.recommendSuspension(new FraudService.RecommendSuspensionCommand(
         UUID.fromString(req.citoyen_id()),
         req.motif(),
-        UUID.fromString(req.operateur_id())
+        com.naatalvote.api.security.CurrentUser.idOr(jwt, req.operateur_id())
     ));
     return Map.of(
         "success", true,

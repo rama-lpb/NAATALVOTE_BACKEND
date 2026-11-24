@@ -1,6 +1,6 @@
 package com.naatalvote.infrastructure.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.naatalvote.application.auth.ports.CitizenRegistryPort;
 import com.naatalvote.infrastructure.external.AppdaffHttpCitizenRegistry;
 import com.naatalvote.infrastructure.external.ClasspathFixturesCitizenRegistry;

@@ -1,0 +1,3 @@
+diff --git a/naatalvote-application/src/main/java/com/naatalvote/application/election/ElectionService.java b/naatalvote-application/src/main/java/com/naatalvote/application/election/ElectionService.java
+-  private static final Duration FREEZE_WINDOW = Duration.ofHours(48);
++  private static final Duration FREEZE_WINDOW = Duration.ofHours(0);

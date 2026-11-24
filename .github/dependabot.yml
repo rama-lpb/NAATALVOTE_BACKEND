@@ -1,0 +1,10 @@
+# Analyse des dépendances : propositions de mise à jour de sécurité (revue humaine obligatoire)
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: "/"
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule: { interval: monthly }

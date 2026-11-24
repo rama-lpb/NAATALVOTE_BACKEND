@@ -1,7 +1,7 @@
 package com.naatalvote.infrastructure.external;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.naatalvote.application.auth.ports.CitizenRegistryPort;
 import java.io.InputStream;
 import java.util.ArrayList;

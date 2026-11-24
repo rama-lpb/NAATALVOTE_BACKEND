@@ -59,6 +59,9 @@ public final class ElectionService {
   }
 
   public UUID createElection(CreateElectionCommand cmd) {
+    if (cmd.dateDebut() != null && !cmd.dateDebut().isAfter(time.now())) {
+      throw new DomainException("La date de début doit être dans le futur");
+    }
     Election e = new Election(
         Ids.newUuid(),
         cmd.titre(),
@@ -80,6 +83,10 @@ public final class ElectionService {
   public void updateElection(UUID electionId, UpdateElectionCommand cmd) {
     Election existing = getElection(electionId);
     ensureModifiable(existing);
+    // Empêche de contourner le gel en rapprochant la date d'ouverture (ex. J+10 -> H+1)
+    if (cmd.dateDebut() != null && time.now().isAfter(cmd.dateDebut().minus(FREEZE_WINDOW))) {
+      throw new DomainException("La nouvelle date de début doit être à plus de 48 h");
+    }
     Election next = new Election(
         existing.id(),
         cmd.titre() == null ? existing.titre() : cmd.titre(),

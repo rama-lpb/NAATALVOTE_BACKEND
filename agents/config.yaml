@@ -1,0 +1,11 @@
+# Configuration versionnée de l'agent de revue NAATALVOTE (aucun secret ici)
+model: claude-sonnet-5-5
+max_turns: 8              # nombre maximal d'échanges avec le modèle
+max_tool_calls: 15        # nombre maximal d'appels d'outils
+max_output_tokens: 2000
+max_diff_chars: 60000
+max_file_chars: 20000
+timeout_seconds: 300
+max_cost_usd: 0.50        # budget par exécution
+usd_per_mtok_in: 2        # tarif Claude Sonnet 5.5 (platform.claude.com, consulté le 16/11/2026)
+usd_per_mtok_out: 10

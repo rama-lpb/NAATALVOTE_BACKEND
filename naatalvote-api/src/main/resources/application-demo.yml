@@ -1,0 +1,7 @@
+# À activer uniquement avec postgres sur une base réservée aux données fictives.
+naatalvote:
+  demo: true
+  auth:
+    debug-return-otp: true
+  jwt:
+    allow-ephemeral: true
