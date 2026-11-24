@@ -34,7 +34,8 @@ public class JwtConfig {
   @Bean
   public KeyPair rsaKeyPair(
       @org.springframework.beans.factory.annotation.Value("${naatalvote.jwt.private-key:}") String privatePem,
-      @org.springframework.beans.factory.annotation.Value("${naatalvote.jwt.public-key:}") String publicPem) {
+      @org.springframework.beans.factory.annotation.Value("${naatalvote.jwt.public-key:}") String publicPem,
+      @org.springframework.beans.factory.annotation.Value("${naatalvote.jwt.allow-ephemeral:false}") boolean allowEphemeral) {
     try {
       if (!privatePem.isBlank() && !publicPem.isBlank()) {
         java.security.KeyFactory kf = java.security.KeyFactory.getInstance("RSA");
@@ -43,7 +44,8 @@ public class JwtConfig {
         log.info("JWT : clé RSA chargée depuis la configuration");
         return new KeyPair(pub, priv);
       }
-      log.warn("JWT : aucune clé configurée, paire RSA éphémère générée (les jetons seront invalidés au redémarrage)");
+      if (!allowEphemeral) throw new IllegalStateException("Clés JWT persistantes requises hors démonstration et tests");
+      log.warn("JWT : démonstration/test avec paire RSA éphémère (jetons invalidés au redémarrage)");
       KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
       gen.initialize(2048);
       return gen.generateKeyPair();
@@ -67,8 +69,23 @@ public class JwtConfig {
   }
 
   @Bean
-  public JwtDecoder jwtDecoder(KeyPair rsaKeyPair) {
-    return NimbusJwtDecoder.withPublicKey((RSAPublicKey) rsaKeyPair.getPublic()).build();
+  public JwtDecoder jwtDecoder(KeyPair rsaKeyPair,
+      com.naatalvote.application.fraud.ports.SuspensionRepositoryPort suspensions) {
+    NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey((RSAPublicKey) rsaKeyPair.getPublic()).build();
+    org.springframework.security.oauth2.core.OAuth2TokenValidator<org.springframework.security.oauth2.jwt.Jwt> activeUser = jwt -> {
+      try {
+        if (!suspensions.isApprovedForCitizen(UUID.fromString(jwt.getSubject()))) {
+          return org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success();
+        }
+      } catch (IllegalArgumentException ignored) {
+        // A malformed subject is never an authenticated citizen.
+      }
+      return org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.failure(
+          new org.springframework.security.oauth2.core.OAuth2Error("invalid_token", "Compte suspendu ou identité invalide", null));
+    };
+    decoder.setJwtValidator(new org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator<>(
+        org.springframework.security.oauth2.jwt.JwtValidators.createDefault(), activeUser));
+    return decoder;
   }
 
   @Bean

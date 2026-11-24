@@ -65,7 +65,7 @@ public class VotesController {
         res = tx == null ? voteService.cast(cmd) : tx.execute(st -> voteService.cast(cmd));
       } catch (DataIntegrityViolationException e) {
         // Requête concurrente du même électeur : la contrainte d'unicité de trace_vote a joué.
-        throw new DomainException("Vote multiple interdit");
+        throw new com.naatalvote.domain.common.ConflictException("Vote multiple ou reçu déjà utilisé");
       }
       String confirmation = ConfirmationUtil.confirmationFor(res.tokenAnonyme());
       tokenByConfirmation.put(confirmation, res.tokenAnonyme());
@@ -82,7 +82,6 @@ public class VotesController {
     return Map.of(
         "success", true,
         "election_id", res.electionId().toString(),
-        "candidat_id", res.candidatId().toString(),
         "horodatage", res.horodatage().toString()
     );
   }

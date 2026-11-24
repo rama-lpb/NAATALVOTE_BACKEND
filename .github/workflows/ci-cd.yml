@@ -12,7 +12,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
   group: backend-${{ github.ref }}
@@ -34,9 +33,9 @@ jobs:
           java-version: "17"
           cache: maven
       - name: Compilation et tests automatisés (unitaires + intégration)
-        run: mvn -B -ntp verify
+        run: mvn -B -ntp verify -Dapi.version=1.44
       - name: Tests de l'orchestrateur de l'agent de revue
-        run: python3 -m unittest agents/tests/test_review_agent.py
+        run: python3 -m unittest discover -s agents/tests -v
       - name: Publication des rapports de tests
         if: always()
         uses: actions/upload-artifact@v4
@@ -46,6 +45,9 @@ jobs:
           retention-days: 30
 
   image:
+    permissions:
+      contents: read
+      packages: write
     name: Image Docker versionnée (GHCR)
     needs: build-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -60,7 +62,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Construction et publication de l'image (tag = SHA du commit)
         run: |
-          docker build -t "$IMAGE_NAME:${GITHUB_SHA}" -t "$IMAGE_NAME:latest" .
+          docker build --build-arg BUILD_SHA="$GITHUB_SHA" -t "$IMAGE_NAME:${GITHUB_SHA}" -t "$IMAGE_NAME:latest" .
           docker push "$IMAGE_NAME:${GITHUB_SHA}"
           docker push "$IMAGE_NAME:latest"
           echo "Image publiée : $IMAGE_NAME:${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
@@ -79,7 +81,7 @@ jobs:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}
         run: |
           test -n "$RENDER_DEPLOY_HOOK" || { echo "Secret RENDER_DEPLOY_HOOK_BACKEND absent"; exit 1; }
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /dev/null
+          curl -fsS -X POST --get --data-urlencode "imgURL=$IMAGE_NAME:${GITHUB_SHA}" "$RENDER_DEPLOY_HOOK" > /dev/null
           echo "Déploiement demandé pour le commit ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
       - name: Test de bon fonctionnement après déploiement (health check)
         env:
@@ -88,7 +90,9 @@ jobs:
           for i in $(seq 1 30); do
             code=$(curl -s -o /dev/null -w '%{http_code}' "$BACKEND_URL/api/v1/health" || true)
             echo "Tentative $i : HTTP $code"
-            if [ "$code" = "200" ]; then echo "Health OK" >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+            if [ "$code" = "200" ] && curl -fsS "$BACKEND_URL/api/v1/health" | python3 -c 'import json,sys,os; assert json.load(sys.stdin)["version"] == os.environ["GITHUB_SHA"]'; then
+              echo "Version ${GITHUB_SHA} vérifiée" >> "$GITHUB_STEP_SUMMARY"; exit 0
+            fi
             sleep 20
           done
           echo "Le service ne répond pas : appliquer la procédure de retour arrière (Rollback Render)."

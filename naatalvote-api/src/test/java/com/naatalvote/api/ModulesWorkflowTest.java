@@ -181,12 +181,12 @@ class ModulesWorkflowTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.success").value(true))
         .andExpect(jsonPath("$.election_id").value(electionEnCoursId))
-        .andExpect(jsonPath("$.candidat_id").value(openCandidateId));
+        .andExpect(jsonPath("$.candidat_id").doesNotExist());
 
     mvc.perform(post("/api/v1/votes")
             .contentType(MediaType.APPLICATION_JSON)
             .content(votePayload))
-        .andExpect(status().isBadRequest())
+        .andExpect(status().isConflict())
         .andExpect(jsonPath("$.success").value(false))
         .andExpect(jsonPath("$.message").value("Vote multiple interdit"));
   }

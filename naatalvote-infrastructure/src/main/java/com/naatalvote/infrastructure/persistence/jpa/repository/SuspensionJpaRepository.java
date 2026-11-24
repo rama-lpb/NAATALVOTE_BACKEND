@@ -4,5 +4,7 @@ import com.naatalvote.infrastructure.persistence.jpa.entity.SuspensionEntity;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface SuspensionJpaRepository extends JpaRepository<SuspensionEntity, UUID> {}
+public interface SuspensionJpaRepository extends JpaRepository<SuspensionEntity, UUID> {
+  boolean existsByCitoyenIdAndStatut(UUID citoyenId, com.naatalvote.domain.fraud.SuspensionStatus statut);
+}
 

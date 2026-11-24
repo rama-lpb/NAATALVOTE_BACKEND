@@ -15,7 +15,7 @@ def fake_anthropic(script):
             r = script[min(len(calls) - 1, len(script) - 1)]
             return N(stop_reason=r["stop"], usage=N(input_tokens=r.get("in", 1000), output_tokens=r.get("out", 100)), content=r["content"])
     mod = types.ModuleType("anthropic")
-    mod.Anthropic = lambda: N(messages=Messages())
+    mod.Anthropic = lambda **kwargs: N(messages=Messages(), _simulation=True)
     sys.modules["anthropic"] = mod
     return calls
 
@@ -79,7 +79,7 @@ class AgentOrchestrationTest(unittest.TestCase):
         os.environ["ANTHROPIC_API_KEY"] = "test"
         diff = AGENT_DIR / "evals" / "cas_nominal.diff"
         out = "/tmp/agent-test-report.md"
-        sys.argv = ["review_agent.py", "--diff-file", str(diff), "--out", out]
+        sys.argv = ["review_agent.py", "--diff-file", str(diff), "--out", out, "--mode", "modele"]
         self.ra.main()
         data = json.loads(pathlib.Path(out).with_suffix(".json").read_text())
         self.assertEqual(data["resultat"]["verdict"], "indetermine")

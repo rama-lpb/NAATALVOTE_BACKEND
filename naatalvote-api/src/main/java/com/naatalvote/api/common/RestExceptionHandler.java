@@ -64,6 +64,12 @@ public class RestExceptionHandler {
     return Map.of("success", false, "message", "Opération refusée : contrainte d'intégrité");
   }
 
+  @ExceptionHandler(com.naatalvote.domain.common.ConflictException.class)
+  @ResponseStatus(HttpStatus.CONFLICT)
+  public Map<String, Object> domainConflict(com.naatalvote.domain.common.ConflictException ex) {
+    return Map.of("success", false, "message", ex.getMessage());
+  }
+
   @ExceptionHandler(ResponseStatusException.class)
   public ResponseEntity<Map<String, Object>> status(ResponseStatusException ex) {
     return ResponseEntity.status(ex.getStatusCode()).body(Map.of("success", false, "message", String.valueOf(ex.getReason())));

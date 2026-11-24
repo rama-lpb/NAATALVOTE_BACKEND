@@ -77,8 +77,7 @@ public final class AuthService {
 
   private boolean isSuspended(User user) {
     if (suspensions == null) return false;
-    return suspensions.findAll().stream().anyMatch(s -> s.citoyenId().equals(user.id())
-        && s.statut() == com.naatalvote.domain.fraud.SuspensionStatus.APPROUVEE);
+    return suspensions.isApprovedForCitizen(user.id());
   }
 
   public LoginResponse login(LoginRequest req) {
@@ -101,6 +100,7 @@ public final class AuthService {
     if (isBlank(req.cni()) || isBlank(req.telephone())) return new SendOtpResponse(false, "CNI et téléphone requis");
     User user = ensureUserLoaded(req.cni());
     String phone = user == null ? null : resolvePhone(user, req.telephone());
+    if (user != null && isSuspended(user)) return new SendOtpResponse(false, "Compte suspendu");
     if (phone == null) {
       return new SendOtpResponse(false, "Utilisateur introuvable");
     }

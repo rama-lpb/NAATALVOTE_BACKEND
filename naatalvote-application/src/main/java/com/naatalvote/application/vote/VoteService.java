@@ -55,7 +55,7 @@ public final class VoteService {
 
     TraceVote existing = traces.findByCitoyenIdAndElectionId(cmd.citoyenId(), cmd.electionId()).orElse(null);
     if (existing != null && existing.aVote()) {
-      throw new DomainException("Vote multiple interdit");
+      throw new com.naatalvote.domain.common.ConflictException("Vote multiple interdit");
     }
     UUID token = cmd.tokenAnonyme() == null ? Ids.newUuid() : cmd.tokenAnonyme();
     Instant now = time.now();
@@ -63,8 +63,7 @@ public final class VoteService {
     //    (citoyen_id, election_id) bloque une requête concurrente avant qu'un bulletin soit créé.
     //    L'appelant exécute cast() dans une transaction : si l'écriture du bulletin échoue, la trace est annulée.
     traces.save(new TraceVote(Ids.newUuid(), cmd.citoyenId(), cmd.electionId(), true, now));
-    // 2) Le bulletin porte un horodatage arrondi à l'heure : il ne peut plus être rapproché de la trace
-    //    (horodatée à la seconde) pour retrouver le choix d'un électeur.
+    // 2) L'arrondi réduit la précision temporelle, sans garantir à lui seul l'anonymat.
     Instant ballotTime = now.truncatedTo(ChronoUnit.HOURS);
     votes.save(new Vote(Ids.newUuid(), token, cmd.electionId(), cmd.candidatId(), ballotTime));
     return new CastVoteResult(true, token, now);
@@ -77,7 +76,7 @@ public final class VoteService {
 
   public VerifyResult verify(UUID token) {
     Vote v = verifyToken(token);
-    return new VerifyResult(v.electionId(), v.candidatId(), v.horodatage());
+    return new VerifyResult(v.electionId(), v.horodatage());
   }
 
   public Results results(UUID electionId) {
@@ -97,5 +96,5 @@ public final class VoteService {
   public record CastVoteResult(boolean success, UUID tokenAnonyme, Instant horodatage) {}
   public record ResultLine(UUID candidatId, int votes, double percent) {}
   public record Results(UUID electionId, int totalVotes, List<ResultLine> results) {}
-  public record VerifyResult(UUID electionId, UUID candidatId, Instant horodatage) {}
+  public record VerifyResult(UUID electionId, Instant horodatage) {}
 }
